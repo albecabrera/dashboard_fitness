@@ -165,12 +165,11 @@
     ============================================================ */
     .dashboard {
       position:relative;z-index:1;
-      display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem;
+      display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;
       padding:1.75rem 2rem;
       align-items: stretch;
     }
 
-    @media (max-width:1000px) { .dashboard { grid-template-columns:1fr 1fr; } }
     @media (max-width:650px)  { .dashboard { grid-template-columns:1fr;padding:1rem; } .app-header { padding:.9rem 1rem; } }
 
     /* ============================================================
@@ -278,7 +277,7 @@
     /* ============================================================
        TODO / KANBAN
     ============================================================ */
-    .card-kanban { min-height:unset !important; }
+    .card-kanban { grid-column:1 / -1;min-height:unset !important; }
     .card-photos { grid-column:1 / -1;min-height:unset !important; }
 
     .todo-input-row { display:flex;gap:.5rem;margin-bottom:.9rem;flex-shrink:0; }
