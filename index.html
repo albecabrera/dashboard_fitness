@@ -12,47 +12,58 @@
        CUSTOM PROPERTIES
     ============================================================ */
     :root {
-      --bg:           #f0f2f7;
-      --surface:      #ffffff;
-      --surface2:     #f7f8fc;
-      --border:       #e4e7f0;
+      --bg:           #eef0f5;
+      --surface:      #eef0f5;
+      --surface2:     #e8eaf0;
+      --border:       #dde0ea;
       --text:         #1a1d2e;
       --text-muted:   #7b82a0;
       --accent:       #4f46e5;
-      --accent-soft:  #eef2ff;
+      --accent-soft:  #e6e4fb;
       --accent2:      #0ea5e9;
-      --accent2-soft: #e0f2fe;
+      --accent2-soft: #daf0fc;
       --green:        #10b981;
-      --green-soft:   #d1fae5;
+      --green-soft:   #d0f5e8;
       --red:          #ef4444;
-      --red-soft:     #fee2e2;
-      --shadow-sm:    0 1px 3px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.04);
-      --shadow:       0 4px 20px rgba(0,0,0,.08), 0 1px 4px rgba(0,0,0,.04);
-      --shadow-lg:    0 16px 40px rgba(0,0,0,.12), 0 2px 8px rgba(0,0,0,.06);
+      --red-soft:     #fde8e8;
+      /* Neumorphic shadows */
+      --neu-light:    #ffffff;
+      --neu-dark:     #c8cad4;
+      --shadow-sm:    3px 3px 6px var(--neu-dark), -3px -3px 6px var(--neu-light);
+      --shadow:       6px 6px 14px var(--neu-dark), -6px -6px 14px var(--neu-light);
+      --shadow-lg:    10px 10px 24px var(--neu-dark), -10px -10px 24px var(--neu-light);
+      --shadow-inset: inset 4px 4px 8px var(--neu-dark), inset -4px -4px 8px var(--neu-light);
+      --shadow-btn:   4px 4px 10px var(--neu-dark), -2px -2px 6px var(--neu-light);
+      --shadow-btn-active: inset 3px 3px 7px var(--neu-dark), inset -2px -2px 5px var(--neu-light);
       --radius:       18px;
-      --radius-sm:    10px;
-      --transition:   .3s cubic-bezier(.4,0,.2,1);
+      --radius-sm:    12px;
+      --transition:   .25s cubic-bezier(.4,0,.2,1);
       --card-height:  680px;
     }
 
     [data-theme="dark"] {
-      --bg:           #0d0f1a;
-      --surface:      #171929;
-      --surface2:     #1f2236;
-      --border:       #2a2e4a;
+      --bg:           #1e2235;
+      --surface:      #1e2235;
+      --surface2:     #252b42;
+      --border:       #2e354f;
       --text:         #e8eaf6;
       --text-muted:   #7b82a0;
       --accent:       #818cf8;
-      --accent-soft:  #1e2145;
+      --accent-soft:  #282d50;
       --accent2:      #38bdf8;
-      --accent2-soft: #0c2a3a;
+      --accent2-soft: #1a2e42;
       --green:        #34d399;
-      --green-soft:   #052e22;
+      --green-soft:   #0f2e22;
       --red:          #f87171;
-      --red-soft:     #3b1010;
-      --shadow-sm:    0 1px 3px rgba(0,0,0,.4);
-      --shadow:       0 4px 20px rgba(0,0,0,.45);
-      --shadow-lg:    0 16px 40px rgba(0,0,0,.6);
+      --red-soft:     #3b1515;
+      --neu-light:    #262d44;
+      --neu-dark:     #161927;
+      --shadow-sm:    3px 3px 6px var(--neu-dark), -3px -3px 6px var(--neu-light);
+      --shadow:       6px 6px 14px var(--neu-dark), -6px -6px 14px var(--neu-light);
+      --shadow-lg:    10px 10px 24px var(--neu-dark), -10px -10px 24px var(--neu-light);
+      --shadow-inset: inset 4px 4px 8px var(--neu-dark), inset -4px -4px 8px var(--neu-light);
+      --shadow-btn:   4px 4px 10px var(--neu-dark), -2px -2px 6px var(--neu-light);
+      --shadow-btn-active: inset 3px 3px 7px var(--neu-dark), inset -2px -2px 5px var(--neu-light);
     }
 
     /* ============================================================
@@ -111,18 +122,13 @@
       align-items: center;
       justify-content: space-between;
       padding: 1.1rem 2rem;
-      background: rgba(255,255,255,.78);
-      backdrop-filter: blur(18px);
-      -webkit-backdrop-filter: blur(18px);
-      border-bottom: 1px solid var(--border);
-      box-shadow: var(--shadow-sm);
+      background: var(--bg);
+      box-shadow: 0 4px 12px var(--neu-dark), 0 -1px 4px var(--neu-light);
       position: sticky;
       top: 0;
       z-index: 200;
-      transition: background var(--transition), border-color var(--transition);
+      transition: background var(--transition), box-shadow var(--transition);
     }
-
-    [data-theme="dark"] .app-header { background: rgba(23,25,41,.82); }
 
     .app-header h1    { font-size: 1.45rem; }
     .app-header .subtitle { font-size:.78rem;color:var(--text-muted);margin-top:.1rem; }
@@ -131,15 +137,17 @@
 
     .date-badge {
       font-size:.78rem;color:var(--text-muted);
-      background:var(--surface2);border:1px solid var(--border);
+      background:var(--surface);border:none;
       padding:.3rem .7rem;border-radius:99px;
-      transition:background var(--transition),border-color var(--transition);
+      box-shadow:var(--shadow-sm);
+      transition:background var(--transition),box-shadow var(--transition);
     }
 
     .theme-toggle {
-      background:var(--surface2);border:1px solid var(--border);border-radius:99px;
+      background:var(--surface);border:none;border-radius:99px;
       cursor:pointer;width:52px;height:28px;position:relative;
-      transition:background var(--transition),border-color var(--transition);
+      box-shadow:var(--shadow-sm);
+      transition:background var(--transition),box-shadow var(--transition);
     }
     .theme-toggle::after {
       content:'';position:absolute;top:3px;left:3px;width:20px;height:20px;
@@ -168,13 +176,12 @@
        CARD  – flex-column, min-height
     ============================================================ */
     .card {
-      background:var(--surface);border:1px solid var(--border);
+      background:var(--surface);border:none;
       border-radius:var(--radius);box-shadow:var(--shadow);
-      padding:1.4rem 1.4rem 1.2rem;
+      padding:1.5rem 1.5rem 1.3rem;
       display:flex;flex-direction:column;
       min-height:var(--card-height);
-      transition:background var(--transition),border-color var(--transition),
-                 box-shadow var(--transition),transform var(--transition);
+      transition:background var(--transition),box-shadow var(--transition),transform var(--transition);
       /* Reveal animation */
       opacity:0;transform:translateY(28px);
       animation:cardReveal .55s cubic-bezier(.22,1,.36,1) forwards;
@@ -188,7 +195,7 @@
       to { opacity:1;transform:translateY(0); }
     }
 
-    .card:hover { box-shadow:var(--shadow-lg);transform:translateY(-4px); }
+    .card:hover { box-shadow:var(--shadow-lg);transform:translateY(-3px); }
 
     /* ============================================================
        CARD HEADER
@@ -224,10 +231,11 @@
        PROGRESS BAR
     ============================================================ */
     .progress-section {
-      background:var(--surface2);border:1px solid var(--border);
+      background:var(--surface);border:none;
       border-radius:var(--radius-sm);padding:.9rem 1rem;
       margin-bottom:1.1rem;flex-shrink:0;
-      transition:background var(--transition),border-color var(--transition);
+      box-shadow:var(--shadow-inset);
+      transition:background var(--transition),box-shadow var(--transition);
     }
     .progress-meta { display:flex;justify-content:space-between;align-items:baseline;margin-bottom:.55rem; }
     .progress-label { font-size:.75rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.07em; }
@@ -273,14 +281,14 @@
 
     .todo-input-row { display:flex;gap:.5rem;margin-bottom:.9rem;flex-shrink:0; }
     .todo-input-row input {
-      flex:1;padding:.58rem .85rem;border:1px solid var(--border);
-      border-radius:var(--radius-sm);background:var(--surface2);color:var(--text);
+      flex:1;padding:.58rem .85rem;border:none;
+      border-radius:var(--radius-sm);background:var(--surface);color:var(--text);
       font-family:inherit;font-size:.875rem;outline:none;
-      transition:border-color var(--transition),background var(--transition),box-shadow var(--transition);
+      box-shadow:var(--shadow-inset);
+      transition:box-shadow var(--transition);
     }
     .todo-input-row input:focus {
-      border-color:var(--accent);background:var(--surface);
-      box-shadow:0 0 0 3px rgba(79,70,229,.12);
+      box-shadow:var(--shadow-inset), 0 0 0 2px rgba(79,70,229,.25);
     }
 
     /* ── Kanban Board ── */
@@ -288,9 +296,10 @@
 
     .kanban-column {
       flex:1;display:flex;flex-direction:column;
-      background:var(--surface2);border:1px solid var(--border);
+      background:var(--surface);border:none;
       border-radius:var(--radius-sm);padding:.75rem;min-width:0;
-      transition:background var(--transition),border-color var(--transition),box-shadow .2s;
+      box-shadow:var(--shadow-inset);
+      transition:background var(--transition),box-shadow .2s;
       animation:colReveal .45s cubic-bezier(.22,1,.36,1) both;
     }
     .kanban-column:nth-child(1){animation-delay:.1s;}
@@ -299,8 +308,8 @@
     @keyframes colReveal{from{opacity:0;transform:translateY(18px);}to{opacity:1;transform:translateY(0);}}
 
     .kanban-column.drag-over {
-      border-color:var(--accent);background:var(--accent-soft);
-      box-shadow:0 0 0 2px rgba(79,70,229,.18);
+      background:var(--accent-soft);
+      box-shadow:var(--shadow-inset), 0 0 0 2px rgba(79,70,229,.2);
     }
 
     .kanban-col-header {
@@ -336,15 +345,16 @@
 
     /* ── Kanban Card ── */
     .kanban-card {
-      background:var(--surface);border:1px solid var(--border);border-left:3px solid transparent;
+      background:var(--surface);border:none;border-left:3px solid transparent;
       border-radius:var(--radius-sm);padding:.5rem .6rem;
       display:flex;align-items:flex-start;gap:.45rem;
       cursor:grab;user-select:none;flex-shrink:0;
+      box-shadow:var(--shadow-sm);
       transition:box-shadow .18s,transform .18s,opacity .18s;
       animation:kCardIn .26s cubic-bezier(.22,1,.36,1) both;
     }
     .kanban-card:active{cursor:grabbing;}
-    .kanban-card:hover{box-shadow:var(--shadow-sm);transform:translateY(-1px);}
+    .kanban-card:hover{box-shadow:var(--shadow);transform:translateY(-2px);}
     .kanban-card.dragging{opacity:.25;transform:scale(.93);}
     #cards-todo .kanban-card        { border-left-color:var(--accent); }
     #cards-inprogress .kanban-card  { border-left-color:var(--accent2); }
@@ -402,14 +412,16 @@
       letter-spacing:.03em;
     }
     .week-nav-btn {
-      background:var(--surface2);border:1px solid var(--border);
+      background:var(--surface);border:none;
       border-radius:var(--radius-sm);cursor:pointer;
-      width:26px;height:26px;display:grid;place-items:center;
+      width:28px;height:28px;display:grid;place-items:center;
       font-size:.8rem;color:var(--text-muted);
-      transition:background var(--transition),color var(--transition),transform .15s;
+      box-shadow:var(--shadow-sm);
+      transition:box-shadow var(--transition),color var(--transition),transform .15s;
     }
-    .week-nav-btn:hover { background:var(--accent2-soft);color:var(--accent2);transform:scale(1.1); }
-    .week-nav-btn:disabled { opacity:.3;cursor:default; }
+    .week-nav-btn:hover { color:var(--accent2);transform:scale(1.08);box-shadow:var(--shadow); }
+    .week-nav-btn:active { box-shadow:var(--shadow-btn-active); }
+    .week-nav-btn:disabled { opacity:.3;cursor:default;box-shadow:none; }
 
     /* ── Day grid ── */
     .workout-week { display:grid;grid-template-columns:repeat(7,1fr);gap:.3rem;margin-bottom:.7rem;flex-shrink:0; }
@@ -418,15 +430,15 @@
     .day-num  { font-size:.6rem;color:var(--text-muted);line-height:1; }
 
     .day-dot {
-      width:36px;height:36px;border-radius:50%;background:var(--surface2);border:2px solid var(--border);
+      width:36px;height:36px;border-radius:50%;background:var(--surface);border:none;
       cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;
       font-size:.75rem;gap:1px;
-      transition:background var(--transition),border-color var(--transition),
-                 box-shadow var(--transition),transform .2s cubic-bezier(.34,1.56,.64,1);
+      box-shadow:var(--shadow-sm);
+      transition:box-shadow var(--transition),transform .2s cubic-bezier(.34,1.56,.64,1);
       position:relative;
     }
-    .day-dot:hover { transform:scale(1.12);border-color:var(--accent2);background:var(--accent2-soft); }
-    .day-dot.today-dot { border-color:var(--accent);border-width:2px; }
+    .day-dot:hover { transform:scale(1.12);box-shadow:var(--shadow); }
+    .day-dot.today-dot { box-shadow:var(--shadow-sm), 0 0 0 2px var(--accent); }
 
     .day-dot.active {
       background:var(--accent2);border-color:var(--accent2);color:#fff;
@@ -497,42 +509,46 @@
       display:grid;grid-template-columns:repeat(4,1fr);gap:.35rem;
     }
     .type-btn {
-      background:var(--surface2);border:1.5px solid var(--border);
+      background:var(--surface);border:none;
       border-radius:var(--radius-sm);padding:.4rem .3rem;
       cursor:pointer;text-align:center;font-size:.72rem;
       font-family:inherit;color:var(--text);
-      transition:background var(--transition),border-color var(--transition),transform .15s;
+      box-shadow:var(--shadow-sm);
+      transition:box-shadow var(--transition),transform .15s,background var(--transition);
       line-height:1.3;
     }
-    .type-btn:hover { background:var(--accent2-soft);border-color:var(--accent2);transform:scale(1.04); }
-    .type-btn.selected { background:var(--accent2);border-color:var(--accent2);color:#fff;font-weight:600; }
+    .type-btn:hover { box-shadow:var(--shadow);transform:scale(1.04); }
+    .type-btn.selected { background:var(--accent2);color:#fff;font-weight:600;box-shadow:var(--shadow-btn-active); }
 
     .goal-row { display:flex;align-items:center;gap:.5rem;margin-bottom:.9rem;flex-shrink:0;flex-wrap:wrap; }
     .goal-row label { font-size:.78rem;color:var(--text-muted);white-space:nowrap; }
     .goal-row input {
-      width:72px;padding:.42rem .6rem;border:1px solid var(--border);
-      border-radius:var(--radius-sm);background:var(--surface2);color:var(--text);
+      width:72px;padding:.42rem .6rem;border:none;
+      border-radius:var(--radius-sm);background:var(--surface);color:var(--text);
       font-family:inherit;font-size:.86rem;outline:none;
-      transition:border-color var(--transition),box-shadow var(--transition);
+      box-shadow:var(--shadow-inset);
+      transition:box-shadow var(--transition);
     }
-    .goal-row input:focus { border-color:var(--accent2);box-shadow:0 0 0 3px rgba(14,165,233,.12); }
+    .goal-row input:focus { box-shadow:var(--shadow-inset), 0 0 0 2px rgba(14,165,233,.25); }
 
     .fitness-input-row { display:flex;gap:.45rem;margin-bottom:.8rem;flex-shrink:0; }
     .fitness-input-row select,
     .fitness-input-row input[type="number"] {
-      flex:1;padding:.52rem .7rem;border:1px solid var(--border);
-      border-radius:var(--radius-sm);background:var(--surface2);color:var(--text);
+      flex:1;padding:.52rem .7rem;border:none;
+      border-radius:var(--radius-sm);background:var(--surface);color:var(--text);
       font-family:inherit;font-size:.86rem;outline:none;
-      transition:border-color var(--transition),box-shadow var(--transition);
+      box-shadow:var(--shadow-inset);
+      transition:box-shadow var(--transition);
     }
     .fitness-input-row select:focus,
-    .fitness-input-row input:focus { border-color:var(--accent2);box-shadow:0 0 0 3px rgba(14,165,233,.12); }
+    .fitness-input-row input:focus { box-shadow:var(--shadow-inset), 0 0 0 2px rgba(14,165,233,.25); }
 
     .workout-items { display:flex;flex-direction:column;gap:.38rem; }
     .workout-entry {
       display:flex;align-items:center;justify-content:space-between;
-      padding:.52rem .75rem;background:var(--surface2);border:1px solid var(--border);
+      padding:.52rem .75rem;background:var(--surface);border:none;
       border-radius:var(--radius-sm);font-size:.84rem;
+      box-shadow:var(--shadow-sm);
       transition:opacity .25s,transform .25s;
       animation:rowSlideIn .25s cubic-bezier(.22,1,.36,1) both;
     }
@@ -546,23 +562,24 @@
     ============================================================ */
     .weight-stats { display:grid;grid-template-columns:1fr 1fr 1fr;gap:.55rem;margin-bottom:1rem;flex-shrink:0; }
     .stat-box {
-      background:var(--surface2);border:1px solid var(--border);
+      background:var(--surface);border:none;
       border-radius:var(--radius-sm);padding:.7rem;text-align:center;
-      transition:background var(--transition),border-color var(--transition),
-                 transform var(--transition),box-shadow var(--transition);
+      box-shadow:var(--shadow-sm);
+      transition:transform var(--transition),box-shadow var(--transition);
     }
-    .stat-box:hover { transform:translateY(-2px);box-shadow:var(--shadow-sm); }
+    .stat-box:hover { transform:translateY(-2px);box-shadow:var(--shadow); }
     .stat-value { font-family:'DM Serif Display',serif;font-size:1.25rem;display:block;line-height:1; }
     .stat-label { font-size:.67rem;color:var(--text-muted);margin-top:.22rem;text-transform:uppercase;letter-spacing:.05em; }
 
     .weight-input-row { display:flex;gap:.5rem;margin-bottom:.85rem;flex-shrink:0; }
     .weight-input-row input {
-      flex:1;padding:.58rem .85rem;border:1px solid var(--border);
-      border-radius:var(--radius-sm);background:var(--surface2);color:var(--text);
+      flex:1;padding:.58rem .85rem;border:none;
+      border-radius:var(--radius-sm);background:var(--surface);color:var(--text);
       font-family:inherit;font-size:.875rem;outline:none;
-      transition:border-color var(--transition),box-shadow var(--transition);
+      box-shadow:var(--shadow-inset);
+      transition:box-shadow var(--transition);
     }
-    .weight-input-row input:focus { border-color:var(--green);box-shadow:0 0 0 3px rgba(16,185,129,.12); }
+    .weight-input-row input:focus { box-shadow:var(--shadow-inset), 0 0 0 2px rgba(16,185,129,.25); }
 
     .weight-chart { width:100%;height:96px;margin-bottom:.8rem;border-radius:var(--radius-sm);overflow:hidden;flex-shrink:0; }
     .weight-chart svg { width:100%;height:100%; }
@@ -570,8 +587,9 @@
     .weight-items { display:flex;flex-direction:column;gap:.38rem; }
     .weight-entry {
       display:flex;align-items:center;justify-content:space-between;
-      padding:.52rem .75rem;background:var(--surface2);border:1px solid var(--border);
+      padding:.52rem .75rem;background:var(--surface);border:none;
       border-radius:var(--radius-sm);font-size:.84rem;
+      box-shadow:var(--shadow-sm);
       transition:opacity .25s,transform .25s;
       animation:rowSlideIn .25s cubic-bezier(.22,1,.36,1) both;
     }
@@ -586,20 +604,16 @@
       padding:.58rem .95rem;border:none;border-radius:var(--radius-sm);
       cursor:pointer;font-family:inherit;font-size:.86rem;font-weight:500;
       white-space:nowrap;position:relative;overflow:hidden;
-      transition:opacity .15s,transform .15s cubic-bezier(.34,1.56,.64,1),box-shadow var(--transition);
+      box-shadow:var(--shadow-btn);
+      transition:box-shadow var(--transition),transform .15s cubic-bezier(.34,1.56,.64,1),opacity .15s;
     }
-    .btn::before {
-      content:'';position:absolute;inset:0;background:rgba(255,255,255,.2);
-      transform:scaleX(0);transform-origin:left;transition:transform .3s ease;
-    }
-    .btn:active::before { transform:scaleX(1); }
-    .btn:active { transform:scale(.95); }
-    .btn-indigo  { background:var(--accent);color:#fff; }
-    .btn-sky     { background:var(--accent2);color:#fff; }
-    .btn-emerald { background:var(--green);color:#fff; }
-    .btn-danger  { background:var(--red-soft);color:var(--red);border:1px solid var(--red); }
+    .btn:hover   { opacity:.92;box-shadow:var(--shadow-lg); }
+    .btn:active  { transform:scale(.96);box-shadow:var(--shadow-btn-active); }
+    .btn-indigo  { background:linear-gradient(135deg,#6366f1,#4f46e5);color:#fff; }
+    .btn-sky     { background:linear-gradient(135deg,#38bdf8,#0ea5e9);color:#fff; }
+    .btn-emerald { background:linear-gradient(135deg,#34d399,#10b981);color:#fff; }
+    .btn-danger  { background:var(--surface);color:var(--red); }
     .btn-danger:hover { background:var(--red);color:#fff; }
-    .btn:hover   { opacity:.88;box-shadow:0 6px 16px rgba(0,0,0,.18); }
     .btn-sm      { padding:.42rem .65rem;font-size:.78rem; }
 
     /* ============================================================
@@ -644,6 +658,69 @@
     /* SVG line + dot animations */
     @keyframes drawLine { to { stroke-dashoffset:0; } }
     @keyframes dotFadeIn { from{opacity:0;transform:scale(0)} to{opacity:1;transform:scale(1)} }
+
+    /* ============================================================
+       LANGUAGE SWITCHER
+    ============================================================ */
+    .lang-switcher { display:flex;gap:.35rem;align-items:center; }
+    .lang-btn {
+      background:var(--surface);border:none;
+      padding:.28rem .55rem;border-radius:8px;
+      font-size:.72rem;font-weight:600;color:var(--text-muted);
+      cursor:pointer;box-shadow:var(--shadow-sm);
+      transition:box-shadow var(--transition),color var(--transition),background var(--transition);
+      letter-spacing:.03em;
+    }
+    .lang-btn:hover { color:var(--accent);box-shadow:var(--shadow); }
+    .lang-btn.active {
+      color:#fff;background:var(--accent);
+      box-shadow:var(--shadow-btn-active);
+    }
+
+    /* ============================================================
+       PHOTO UPLOAD
+    ============================================================ */
+    .photo-drop-zone {
+      border:none;border-radius:var(--radius-sm);
+      padding:1.4rem;text-align:center;
+      background:var(--surface);cursor:pointer;
+      box-shadow:var(--shadow-inset);
+      transition:box-shadow var(--transition),background var(--transition);
+      flex-shrink:0;margin-bottom:1rem;
+    }
+    .photo-drop-zone.dragover { box-shadow:var(--shadow-inset), 0 0 0 2px var(--accent); }
+    .photo-drop-zone-icon { font-size:2rem;line-height:1;margin-bottom:.4rem; }
+    .photo-drop-zone p { font-size:.8rem;color:var(--text-muted);margin:0; }
+    .photo-drop-zone input[type="file"] { display:none; }
+
+    .photo-gallery {
+      display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));
+      gap:.75rem;
+    }
+    .photo-item {
+      border-radius:var(--radius-sm);overflow:hidden;
+      position:relative;aspect-ratio:1;
+      box-shadow:var(--shadow-sm);
+      transition:box-shadow var(--transition),transform var(--transition);
+      animation:kCardIn .3s cubic-bezier(.22,1,.36,1) both;
+    }
+    .photo-item:hover { box-shadow:var(--shadow);transform:translateY(-2px); }
+    .photo-item img { width:100%;height:100%;object-fit:cover;display:block; }
+    .photo-item-label {
+      position:absolute;bottom:0;left:0;right:0;
+      background:linear-gradient(transparent,rgba(0,0,0,.55));
+      color:#fff;font-size:.62rem;padding:.3rem .4rem;
+    }
+    .photo-item-delete {
+      position:absolute;top:.3rem;right:.3rem;
+      background:rgba(0,0,0,.55);border:none;border-radius:50%;
+      color:#fff;width:20px;height:20px;font-size:.7rem;
+      cursor:pointer;display:grid;place-items:center;
+      opacity:0;transition:opacity .2s;
+    }
+    .photo-item:hover .photo-item-delete { opacity:1; }
+
+    .photo-empty { text-align:center;padding:1rem;color:var(--text-muted);font-size:.82rem; }
   </style>
 </head>
 <body>
@@ -660,11 +737,16 @@
 ============================================================ -->
 <header class="app-header">
   <div>
-    <h1>Personal Dashboard</h1>
-    <p class="subtitle">Aufgaben · Fitness · Gesundheit</p>
+    <h1 data-i18n="appTitle">Personal Dashboard</h1>
+    <p class="subtitle" data-i18n="appSubtitle">Aufgaben · Fitness · Gesundheit</p>
   </div>
   <div class="header-right">
     <span class="date-badge" id="dateBadge"></span>
+    <div class="lang-switcher">
+      <button class="lang-btn active" data-lang="de">DE</button>
+      <button class="lang-btn" data-lang="es">ES</button>
+      <button class="lang-btn" data-lang="en">EN</button>
+    </div>
     <button class="theme-toggle" id="themeToggle" aria-label="Theme wechseln">
       <span class="icon icon-sun">☀️</span>
       <span class="icon icon-moon">🌙</span>
@@ -683,7 +765,7 @@
       <div class="card-title-group">
         <div class="card-icon indigo">✅</div>
         <div>
-          <h2 class="card-title">To-Do Board</h2>
+          <h2 class="card-title" data-i18n="todoTitle">To-Do Board</h2>
           <p class="card-subtitle" id="todoSubtitle">0 von 0 erledigt</p>
         </div>
       </div>
@@ -700,8 +782,8 @@
     </div>
 
     <div class="todo-input-row">
-      <input type="text" id="todoInput" placeholder="Neue Aufgabe …" maxlength="120" />
-      <button class="btn btn-indigo btn-sm" onclick="addTodo()">＋ Hinzufügen</button>
+      <input type="text" id="todoInput" data-i18n-placeholder="todoPlaceholder" placeholder="Neue Aufgabe …" maxlength="120" />
+      <button class="btn btn-indigo btn-sm" onclick="addTodo()" data-i18n="todoAdd">＋ Hinzufügen</button>
     </div>
 
     <div class="kanban-board">
@@ -735,7 +817,7 @@
       <div class="card-title-group">
         <div class="card-icon sky">🏋️</div>
         <div>
-          <h2 class="card-title">Fitness</h2>
+          <h2 class="card-title" data-i18n="fitnessTitle">Fitness</h2>
           <p class="card-subtitle" id="fitnessSubtitle">0 Einheiten diese Woche</p>
         </div>
       </div>
@@ -817,7 +899,7 @@
       <div class="card-title-group">
         <div class="card-icon emerald">⚖️</div>
         <div>
-          <h2 class="card-title">Gewicht</h2>
+          <h2 class="card-title" data-i18n="weightTitle">Gewicht</h2>
           <p class="card-subtitle" id="weightSubtitle">Noch keine Einträge</p>
         </div>
       </div>
@@ -859,6 +941,31 @@
     <div class="scroll-area">
       <div class="weight-items" id="weightItems">
         <div class="empty-state" id="weightEmpty">Noch keine Einträge vorhanden.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════ PROGRESS PHOTOS ══════════════ -->
+  <section class="card" style="animation-delay:.35s;">
+    <div class="card-header">
+      <div class="card-title-group">
+        <div class="card-icon indigo">📸</div>
+        <div>
+          <h2 class="card-title" data-i18n="photoTitle">Fortschrittsfotos</h2>
+          <p class="card-subtitle" id="photoSubtitle" data-i18n="photoSubtitle">Vorher / Nachher Galerie</p>
+        </div>
+      </div>
+    </div>
+
+    <label class="photo-drop-zone" id="photoDropZone">
+      <div class="photo-drop-zone-icon">📷</div>
+      <p data-i18n="photoDropHint">Fotos hier ablegen oder klicken zum Auswählen</p>
+      <input type="file" id="photoFileInput" accept="image/*" multiple />
+    </label>
+
+    <div class="scroll-area">
+      <div class="photo-gallery" id="photoGallery">
+        <div class="photo-empty" id="photoEmpty" data-i18n="photoEmpty">Noch keine Fotos hochgeladen.</div>
       </div>
     </div>
   </section>
@@ -1525,8 +1632,123 @@ function resetAllWeights(){
   weights=[]; save('weights',weights); renderWeight(); toast('Gewichtsverlauf zurückgesetzt 🗑');
 }
 
+/* ═══════════════════════════════════════════════════════
+   i18n
+═══════════════════════════════════════════════════════ */
+const TRANSLATIONS = {
+  de: {
+    appTitle:        'Personal Dashboard',
+    appSubtitle:     'Aufgaben · Fitness · Gesundheit',
+    todoTitle:       'To-Do Board',
+    todoPlaceholder: 'Neue Aufgabe …',
+    todoAdd:         '＋ Hinzufügen',
+    fitnessTitle:    'Fitness',
+    weightTitle:     'Gewicht',
+    photoTitle:      'Fortschrittsfotos',
+    photoSubtitle:   'Vorher / Nachher Galerie',
+    photoDropHint:   'Fotos hier ablegen oder klicken zum Auswählen',
+    photoEmpty:      'Noch keine Fotos hochgeladen.',
+  },
+  es: {
+    appTitle:        'Panel Personal',
+    appSubtitle:     'Tareas · Fitness · Salud',
+    todoTitle:       'Tablero de Tareas',
+    todoPlaceholder: 'Nueva tarea …',
+    todoAdd:         '＋ Añadir',
+    fitnessTitle:    'Fitness',
+    weightTitle:     'Peso',
+    photoTitle:      'Fotos de Progreso',
+    photoSubtitle:   'Galería Antes / Después',
+    photoDropHint:   'Arrastra fotos aquí o haz clic para seleccionar',
+    photoEmpty:      'Aún no hay fotos subidas.',
+  },
+  en: {
+    appTitle:        'Personal Dashboard',
+    appSubtitle:     'Tasks · Fitness · Health',
+    todoTitle:       'To-Do Board',
+    todoPlaceholder: 'New task …',
+    todoAdd:         '＋ Add',
+    fitnessTitle:    'Fitness',
+    weightTitle:     'Weight',
+    photoTitle:      'Progress Photos',
+    photoSubtitle:   'Before / After Gallery',
+    photoDropHint:   'Drop photos here or click to select',
+    photoEmpty:      'No photos uploaded yet.',
+  }
+};
+
+let currentLang = load('lang', 'de');
+
+function applyLang(lang) {
+  currentLang = lang;
+  save('lang', lang);
+  const t = TRANSLATIONS[lang] || TRANSLATIONS.de;
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.dataset.i18n;
+    if (t[key]) el.textContent = t[key];
+  });
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+    const key = el.dataset.i18nPlaceholder;
+    if (t[key]) el.placeholder = t[key];
+  });
+  document.querySelectorAll('.lang-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.lang === lang);
+  });
+}
+
+document.querySelectorAll('.lang-btn').forEach(btn => {
+  btn.addEventListener('click', () => applyLang(btn.dataset.lang));
+});
+
+/* ═══════════════════════════════════════════════════════
+   PROGRESS PHOTOS
+═══════════════════════════════════════════════════════ */
+let photos = load('photos', []);  // [{id, dataUrl, date}]
+
+function savePhotos() { save('photos', photos); }
+
+function renderPhotos() {
+  const gallery = $('photoGallery');
+  gallery.querySelectorAll('.photo-item').forEach(el => el.remove());
+  $('photoEmpty').style.display = photos.length ? 'none' : 'block';
+  photos.slice().reverse().forEach(p => {
+    const item = document.createElement('div');
+    item.className = 'photo-item';
+    item.innerHTML = `<img src="${p.dataUrl}" alt="Fortschrittsfoto">
+      <div class="photo-item-label">${fmt(p.date)}</div>
+      <button class="photo-item-delete" title="Löschen">×</button>`;
+    item.querySelector('.photo-item-delete').addEventListener('click', () => {
+      photos = photos.filter(x => x.id !== p.id);
+      savePhotos(); renderPhotos(); toast('Foto gelöscht');
+    });
+    gallery.appendChild(item);
+  });
+}
+
+function handlePhotoFiles(files) {
+  [...files].forEach(file => {
+    if (!file.type.startsWith('image/')) return;
+    const reader = new FileReader();
+    reader.onload = e => {
+      photos.push({ id: Date.now() + Math.random(), dataUrl: e.target.result, date: today() });
+      savePhotos(); renderPhotos(); toast('Foto gespeichert 📸');
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+$('photoFileInput').addEventListener('change', e => handlePhotoFiles(e.target.files));
+
+const dropZone = $('photoDropZone');
+dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('dragover'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+dropZone.addEventListener('drop', e => {
+  e.preventDefault(); dropZone.classList.remove('dragover');
+  handlePhotoFiles(e.dataTransfer.files);
+});
+
 /* ── INIT ── */
-initTheme(); renderTodos(); renderFitness(); renderWeight();
+initTheme(); applyLang(currentLang); renderTodos(); renderFitness(); renderWeight(); renderPhotos();
 </script>
 </body>
 </html>
