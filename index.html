@@ -267,10 +267,11 @@
     .scroll-area::-webkit-scrollbar-thumb { background:var(--border);border-radius:2px; }
 
     /* ============================================================
-       TODO
+       TODO / KANBAN
     ============================================================ */
-    .todo-input-row { display:flex;gap:.5rem;margin-bottom:.9rem;flex-shrink:0; }
+    .card-kanban { grid-column:1 / -1;min-height:unset !important; }
 
+    .todo-input-row { display:flex;gap:.5rem;margin-bottom:.9rem;flex-shrink:0; }
     .todo-input-row input {
       flex:1;padding:.58rem .85rem;border:1px solid var(--border);
       border-radius:var(--radius-sm);background:var(--surface2);color:var(--text);
@@ -282,47 +283,111 @@
       box-shadow:0 0 0 3px rgba(79,70,229,.12);
     }
 
-    .todo-items { display:flex;flex-direction:column;gap:.4rem; }
+    /* ── Kanban Board ── */
+    .kanban-board { display:flex;gap:1rem;flex:1;min-height:0;height:400px; }
 
-    .todo-item {
-      display:flex;align-items:center;gap:.6rem;padding:.58rem .75rem;
+    .kanban-column {
+      flex:1;display:flex;flex-direction:column;
       background:var(--surface2);border:1px solid var(--border);
-      border-radius:var(--radius-sm);
-      transition:background var(--transition),border-color var(--transition),
-                 opacity .25s,transform .25s;
-      animation:rowSlideIn .25s cubic-bezier(.22,1,.36,1) both;
+      border-radius:var(--radius-sm);padding:.75rem;min-width:0;
+      transition:background var(--transition),border-color var(--transition),box-shadow .2s;
+      animation:colReveal .45s cubic-bezier(.22,1,.36,1) both;
     }
-    @keyframes rowSlideIn {
-      from { opacity:0;transform:translateX(-14px); }
-      to   { opacity:1;transform:translateX(0); }
-    }
-    .todo-item.removing { opacity:0;transform:translateX(22px);pointer-events:none; }
-    .todo-item.done { opacity:.52; }
-    .todo-item.done .todo-text { text-decoration:line-through;color:var(--text-muted); }
+    .kanban-column:nth-child(1){animation-delay:.1s;}
+    .kanban-column:nth-child(2){animation-delay:.22s;}
+    .kanban-column:nth-child(3){animation-delay:.34s;}
+    @keyframes colReveal{from{opacity:0;transform:translateY(18px);}to{opacity:1;transform:translateY(0);}}
 
-    .todo-checkbox {
-      appearance:none;width:18px;height:18px;border:2px solid var(--border);
-      border-radius:5px;cursor:pointer;flex-shrink:0;position:relative;
-      transition:background var(--transition),border-color var(--transition),transform .15s;
-    }
-    .todo-checkbox:hover { transform:scale(1.1); }
-    .todo-checkbox:checked {
-      background:var(--accent);border-color:var(--accent);
-      animation:checkPop .25s cubic-bezier(.34,1.56,.64,1);
-    }
-    @keyframes checkPop { 0%{transform:scale(.6)} 100%{transform:scale(1)} }
-    .todo-checkbox:checked::after {
-      content:'✓';position:absolute;top:50%;left:50%;
-      transform:translate(-50%,-50%);color:#fff;font-size:.68rem;font-weight:700;
+    .kanban-column.drag-over {
+      border-color:var(--accent);background:var(--accent-soft);
+      box-shadow:0 0 0 2px rgba(79,70,229,.18);
     }
 
-    .todo-text { flex:1;font-size:.86rem;line-height:1.4; }
-    .todo-delete {
+    .kanban-col-header {
+      display:flex;align-items:center;justify-content:space-between;
+      margin-bottom:.55rem;padding-bottom:.45rem;
+      border-bottom:1px solid var(--border);flex-shrink:0;
+    }
+    .kanban-col-title { font-size:.72rem;font-weight:600;text-transform:uppercase;letter-spacing:.07em; }
+    #col-todo .kanban-col-title    { color:var(--accent); }
+    #col-inprogress .kanban-col-title { color:var(--accent2); }
+    #col-ready .kanban-col-title   { color:var(--green); }
+
+    .kanban-col-count {
+      font-size:.65rem;font-weight:600;padding:.12rem .38rem;
+      border-radius:99px;min-width:20px;text-align:center;
+      transition:background .3s,color .3s;
+    }
+    #col-todo .kanban-col-count    { background:var(--accent-soft);color:var(--accent); }
+    #col-inprogress .kanban-col-count { background:var(--accent2-soft);color:var(--accent2); }
+    #col-ready .kanban-col-count   { background:var(--green-soft);color:var(--green); }
+
+    .kanban-cards {
+      flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:.38rem;padding:.1rem 0;
+    }
+    .kanban-cards::-webkit-scrollbar{width:3px;}
+    .kanban-cards::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
+
+    .drop-indicator {
+      height:2px;background:var(--accent);border-radius:2px;flex-shrink:0;
+      animation:indPulse .5s ease-in-out infinite alternate;
+    }
+    @keyframes indPulse{from{opacity:.5}to{opacity:1}}
+
+    /* ── Kanban Card ── */
+    .kanban-card {
+      background:var(--surface);border:1px solid var(--border);border-left:3px solid transparent;
+      border-radius:var(--radius-sm);padding:.5rem .6rem;
+      display:flex;align-items:flex-start;gap:.45rem;
+      cursor:grab;user-select:none;flex-shrink:0;
+      transition:box-shadow .18s,transform .18s,opacity .18s;
+      animation:kCardIn .26s cubic-bezier(.22,1,.36,1) both;
+    }
+    .kanban-card:active{cursor:grabbing;}
+    .kanban-card:hover{box-shadow:var(--shadow-sm);transform:translateY(-1px);}
+    .kanban-card.dragging{opacity:.25;transform:scale(.93);}
+    #cards-todo .kanban-card        { border-left-color:var(--accent); }
+    #cards-inprogress .kanban-card  { border-left-color:var(--accent2); }
+    #cards-ready .kanban-card       { border-left-color:var(--green); }
+
+    @keyframes kCardIn{
+      from{opacity:0;transform:translateY(-7px) scale(.96);}
+      to{opacity:1;transform:translateY(0) scale(1);}
+    }
+
+    .kanban-card-text{flex:1;font-size:.82rem;line-height:1.4;word-break:break-word;padding-top:.05rem;}
+
+    .kanban-card-actions{display:flex;align-items:center;gap:.2rem;flex-shrink:0;}
+
+    .kanban-move-btn{
+      background:none;border:1px solid var(--border);cursor:pointer;
+      color:var(--text-muted);font-size:.68rem;padding:.15rem .3rem;
+      border-radius:5px;white-space:nowrap;
+      transition:color var(--transition),background var(--transition),
+                 border-color var(--transition),transform .12s;
+    }
+    .kanban-move-btn:hover{transform:scale(1.08);}
+    .kanban-move-btn.to-inprogress:hover{color:var(--accent2);border-color:var(--accent2);background:var(--accent2-soft);}
+    .kanban-move-btn.to-ready:hover{color:var(--green);border-color:var(--green);background:var(--green-soft);}
+    .kanban-move-btn.to-todo:hover,.kanban-move-btn.to-inprogress-back:hover{color:var(--text-muted);background:var(--surface2);}
+
+    .kanban-delete{
       background:none;border:none;cursor:pointer;color:var(--text-muted);
-      font-size:1rem;line-height:1;padding:.1rem .28rem;border-radius:4px;flex-shrink:0;
-      transition:color var(--transition),background var(--transition),transform .15s;
+      font-size:.88rem;line-height:1;padding:.1rem .2rem;border-radius:4px;flex-shrink:0;
+      transition:color var(--transition),background var(--transition),transform .12s;
     }
-    .todo-delete:hover { color:var(--red);background:var(--red-soft);transform:scale(1.15); }
+    .kanban-delete:hover{color:var(--red);background:var(--red-soft);transform:scale(1.15);}
+
+    .kanban-empty{
+      text-align:center;color:var(--text-muted);font-size:.76rem;
+      padding:1.4rem .4rem;opacity:.6;pointer-events:none;
+    }
+
+    /* ── Confetti Canvas ── */
+    #confetti-canvas{
+      position:fixed;top:0;left:0;width:100%;height:100%;
+      pointer-events:none;z-index:9999;
+    }
 
     /* ============================================================
        FITNESS
@@ -612,13 +677,13 @@
 ============================================================ -->
 <main class="dashboard">
 
-  <!-- ══════════════ TODO ══════════════ -->
-  <section class="card">
+  <!-- ══════════════ TODO / KANBAN ══════════════ -->
+  <section class="card card-kanban">
     <div class="card-header">
       <div class="card-title-group">
         <div class="card-icon indigo">✅</div>
         <div>
-          <h2 class="card-title">To-Do</h2>
+          <h2 class="card-title">To-Do Board</h2>
           <p class="card-subtitle" id="todoSubtitle">0 von 0 erledigt</p>
         </div>
       </div>
@@ -639,11 +704,27 @@
       <button class="btn btn-indigo btn-sm" onclick="addTodo()">＋ Hinzufügen</button>
     </div>
 
-    <p class="section-label">Aufgaben</p>
-
-    <div class="scroll-area">
-      <div class="todo-items" id="todoItems">
-        <div class="empty-state" id="todoEmpty">Noch keine Aufgaben. Los geht's! 🚀</div>
+    <div class="kanban-board">
+      <div class="kanban-column" id="col-todo">
+        <div class="kanban-col-header">
+          <span class="kanban-col-title">To-Do</span>
+          <span class="kanban-col-count" id="count-todo">0</span>
+        </div>
+        <div class="kanban-cards" id="cards-todo" data-status="todo"></div>
+      </div>
+      <div class="kanban-column" id="col-inprogress">
+        <div class="kanban-col-header">
+          <span class="kanban-col-title">In Progress</span>
+          <span class="kanban-col-count" id="count-inprogress">0</span>
+        </div>
+        <div class="kanban-cards" id="cards-inprogress" data-status="inprogress"></div>
+      </div>
+      <div class="kanban-column" id="col-ready">
+        <div class="kanban-col-header">
+          <span class="kanban-col-title">✓ Ready</span>
+          <span class="kanban-col-count" id="count-ready">0</span>
+        </div>
+        <div class="kanban-cards" id="cards-ready" data-status="ready"></div>
       </div>
     </div>
   </section>
@@ -785,6 +866,7 @@
 </main>
 
 <div id="toast"></div>
+<canvas id="confetti-canvas"></canvas>
 
 <!-- ============================================================
      JAVASCRIPT
@@ -818,43 +900,235 @@ $('themeToggle').addEventListener('click',()=>{
 $('dateBadge').textContent=new Date().toLocaleDateString('de-DE',{weekday:'long',day:'numeric',month:'long'});
 
 /* ═══════════════════════════════════════════════════════
-   TODO
+   KANBAN / TODO
 ═══════════════════════════════════════════════════════ */
-let todos=load('todos',[]);
-function saveTodos(){save('todos',todos);}
+// Migrate old data format (done/!done → ready/todo)
+let todos = load('todos', []).map((t, i) => ({
+  text: t.text,
+  status: t.status || (t.done ? 'ready' : 'todo'),
+  id: t.id || (Date.now() + i * 17)
+}));
 
-function renderTodos(){
-  const done=todos.filter(t=>t.done).length, total=todos.length;
-  const pct=total===0?0:Math.round(done/total*100);
-  const pEl=$('todoPct');
-  $('todoSubtitle').textContent=`${done} von ${total} erledigt`;
-  if(pEl.textContent!==pct+'%'){pEl.textContent=pct+'%';bump(pEl);}
-  $('todoBar').style.width=pct+'%';
-  $('todoEmpty').style.display=todos.length?'none':'block';
-  const c=$('todoItems');
-  [...c.querySelectorAll('.todo-item')].forEach(e=>e.remove());
-  todos.forEach((t,i)=>{
-    const item=document.createElement('div');
-    item.className='todo-item'+(t.done?' done':'');
-    const cb=document.createElement('input'); cb.type='checkbox'; cb.className='todo-checkbox'; cb.checked=t.done;
-    cb.addEventListener('change',()=>{todos[i].done=cb.checked;saveTodos();renderTodos();});
-    const sp=document.createElement('span'); sp.className='todo-text'; sp.textContent=t.text;
-    const dl=document.createElement('button'); dl.className='todo-delete'; dl.innerHTML='×'; dl.title='Löschen';
-    dl.addEventListener('click',()=>{
-      item.classList.add('removing');
-      setTimeout(()=>{todos.splice(i,1);saveTodos();renderTodos();toast('Aufgabe gelöscht');},240);
-    });
-    item.appendChild(cb); item.appendChild(sp); item.appendChild(dl); c.appendChild(item);
+function saveTodos() { save('todos', todos); }
+
+const STATUS_ORDER = ['todo', 'inprogress', 'ready'];
+const STATUS_NEXT  = { todo: 'inprogress', inprogress: 'ready', ready: null };
+const STATUS_PREV  = { todo: null, inprogress: 'todo', ready: 'inprogress' };
+const NEXT_LABEL   = { todo: '→ Progress', inprogress: '→ Ready', ready: null };
+const PREV_LABEL   = { todo: null, inprogress: '← Todo', ready: '← Progress' };
+const EMPTY_MSG    = { todo: 'Keine Aufgaben', inprogress: 'Nichts in Bearbeitung', ready: 'Noch nichts erledigt' };
+
+function renderTodos() {
+  const total = todos.length;
+  const done  = todos.filter(t => t.status === 'ready').length;
+  const pct   = total === 0 ? 0 : Math.round(done / total * 100);
+  const pEl   = $('todoPct');
+  $('todoSubtitle').textContent = `${done} von ${total} erledigt`;
+  if (pEl.textContent !== pct + '%') { pEl.textContent = pct + '%'; bump(pEl); }
+  $('todoBar').style.width = pct + '%';
+
+  STATUS_ORDER.forEach(status => {
+    const container = $('cards-' + status);
+    container.innerHTML = '';
+    const items = todos.filter(t => t.status === status);
+    $('count-' + status).textContent = items.length;
+    if (items.length === 0) {
+      const e = document.createElement('div');
+      e.className = 'kanban-empty';
+      e.textContent = EMPTY_MSG[status];
+      container.appendChild(e);
+    }
+    items.forEach(t => container.appendChild(createKanbanCard(t)));
+    setupDropZone(container);
   });
 }
 
-function addTodo(){
-  const inp=$('todoInput'), text=inp.value.trim();
-  if(!text){inp.focus();return;}
-  todos.push({text,done:false}); saveTodos(); renderTodos();
-  inp.value=''; inp.focus(); toast('Aufgabe hinzugefügt ✅');
+function createKanbanCard(t) {
+  const card = document.createElement('div');
+  card.className = 'kanban-card';
+  card.draggable = true;
+  card.dataset.id = t.id;
+
+  const text = document.createElement('span');
+  text.className = 'kanban-card-text';
+  text.textContent = t.text;
+
+  const actions = document.createElement('div');
+  actions.className = 'kanban-card-actions';
+
+  const prev = STATUS_PREV[t.status];
+  if (prev) {
+    const pb = document.createElement('button');
+    pb.className = 'kanban-move-btn to-' + prev + (prev === 'inprogress' ? '-back' : '');
+    pb.textContent = PREV_LABEL[t.status];
+    pb.title = PREV_LABEL[t.status];
+    pb.addEventListener('click', () => moveCard(t.id, prev));
+    actions.appendChild(pb);
+  }
+
+  const next = STATUS_NEXT[t.status];
+  if (next) {
+    const nb = document.createElement('button');
+    nb.className = 'kanban-move-btn to-' + next;
+    nb.textContent = NEXT_LABEL[t.status];
+    nb.title = NEXT_LABEL[t.status];
+    nb.addEventListener('click', () => moveCard(t.id, next));
+    actions.appendChild(nb);
+  }
+
+  const del = document.createElement('button');
+  del.className = 'kanban-delete';
+  del.innerHTML = '×';
+  del.title = 'Löschen';
+  del.addEventListener('click', () => {
+    card.style.transition = 'opacity .18s,transform .18s';
+    card.style.opacity = '0';
+    card.style.transform = 'scale(.88)';
+    setTimeout(() => { todos = todos.filter(x => x.id !== t.id); saveTodos(); renderTodos(); toast('Aufgabe gelöscht'); }, 190);
+  });
+
+  actions.appendChild(del);
+  card.appendChild(text);
+  card.appendChild(actions);
+
+  card.addEventListener('dragstart', e => {
+    e.dataTransfer.setData('text/plain', String(t.id));
+    e.dataTransfer.effectAllowed = 'move';
+    setTimeout(() => card.classList.add('dragging'), 0);
+  });
+  card.addEventListener('dragend', () => {
+    card.classList.remove('dragging');
+    document.querySelectorAll('.drop-indicator').forEach(el => el.remove());
+    document.querySelectorAll('.kanban-column.drag-over').forEach(el => el.classList.remove('drag-over'));
+  });
+  return card;
 }
-$('todoInput').addEventListener('keydown',e=>{if(e.key==='Enter')addTodo();});
+
+function moveCard(id, newStatus) {
+  const idx = todos.findIndex(t => t.id === id);
+  if (idx === -1) return;
+  const oldStatus = todos[idx].status;
+  if (oldStatus === newStatus) return;
+  const [item] = todos.splice(idx, 1);
+  item.status = newStatus;
+  // Insert at top of target column
+  const firstOfStatus = todos.findIndex(t => t.status === newStatus);
+  todos.splice(firstOfStatus === -1 ? todos.length : firstOfStatus, 0, item);
+  saveTodos(); renderTodos();
+  if (newStatus === 'ready')       { launchConfetti(); toast('Aufgabe erledigt! 🎉'); }
+  else if (newStatus === 'inprogress') toast('In Bearbeitung 🔄');
+  else                              toast('Zurück zu To-Do');
+}
+
+function getDragAfterElement(container, y) {
+  const els = [...container.querySelectorAll('.kanban-card:not(.dragging)')];
+  return els.reduce((closest, child) => {
+    const box = child.getBoundingClientRect();
+    const offset = y - box.top - box.height / 2;
+    return (offset < 0 && offset > closest.offset) ? { offset, element: child } : closest;
+  }, { offset: Number.NEGATIVE_INFINITY }).element;
+}
+
+function setupDropZone(container) {
+  container.addEventListener('dragover', e => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    container.closest('.kanban-column').classList.add('drag-over');
+    container.querySelectorAll('.drop-indicator').forEach(el => el.remove());
+    const after = getDragAfterElement(container, e.clientY);
+    const ind = document.createElement('div');
+    ind.className = 'drop-indicator';
+    if (after) container.insertBefore(ind, after);
+    else container.appendChild(ind);
+  });
+  container.addEventListener('dragleave', e => {
+    if (!container.contains(e.relatedTarget)) {
+      container.closest('.kanban-column').classList.remove('drag-over');
+      container.querySelectorAll('.drop-indicator').forEach(el => el.remove());
+    }
+  });
+  container.addEventListener('drop', e => {
+    e.preventDefault();
+    const id = parseInt(e.dataTransfer.getData('text/plain'), 10);
+    const targetStatus = container.dataset.status;
+    container.closest('.kanban-column').classList.remove('drag-over');
+    container.querySelectorAll('.drop-indicator').forEach(el => el.remove());
+
+    const idx = todos.findIndex(t => t.id === id);
+    if (idx === -1) return;
+    const oldStatus = todos[idx].status;
+    const insertBefore = getDragAfterElement(container, e.clientY);
+    const insertBeforeId = insertBefore ? parseInt(insertBefore.dataset.id, 10) : null;
+
+    const [item] = todos.splice(idx, 1);
+    item.status = targetStatus;
+
+    if (insertBeforeId !== null) {
+      const pos = todos.findIndex(t => t.id === insertBeforeId);
+      todos.splice(pos !== -1 ? pos : todos.length, 0, item);
+    } else {
+      todos.push(item);
+    }
+
+    saveTodos(); renderTodos();
+    if (targetStatus === 'ready' && oldStatus !== 'ready') { launchConfetti(); toast('Aufgabe erledigt! 🎉'); }
+    else if (targetStatus === 'inprogress' && oldStatus === 'todo') toast('In Bearbeitung 🔄');
+  });
+}
+
+function addTodo() {
+  const inp = $('todoInput'), text = inp.value.trim();
+  if (!text) { inp.focus(); return; }
+  todos.push({ text, status: 'todo', id: Date.now() });
+  saveTodos(); renderTodos();
+  inp.value = ''; inp.focus(); toast('Aufgabe hinzugefügt ✅');
+}
+$('todoInput').addEventListener('keydown', e => { if (e.key === 'Enter') addTodo(); });
+
+/* ── Confetti ── */
+function launchConfetti() {
+  const canvas = $('confetti-canvas');
+  const ctx = canvas.getContext('2d');
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  const colors = ['#6366f1','#10b981','#0ea5e9','#f59e0b','#ec4899','#a5b4fc','#6ee7b7','#fcd34d'];
+  const pieces = Array.from({ length: 130 }, () => ({
+    x: Math.random() * canvas.width,
+    y: -10 - Math.random() * 120,
+    r: 4 + Math.random() * 6,
+    d: 1.8 + Math.random() * 3.5,
+    color: colors[Math.floor(Math.random() * colors.length)],
+    tiltAngle: Math.random() * Math.PI * 2,
+    tiltSpeed: 0.06 + Math.random() * 0.05,
+    opacity: 1,
+    shape: Math.random() > .5 ? 'rect' : 'circle',
+  }));
+  let frame, elapsed = 0;
+  function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    elapsed++;
+    let alive = false;
+    pieces.forEach(p => {
+      p.tiltAngle += p.tiltSpeed;
+      p.y += p.d;
+      p.x += Math.sin(p.tiltAngle) * 1.2;
+      if (elapsed > 90) p.opacity = Math.max(0, p.opacity - 0.013);
+      if (p.opacity > 0) alive = true;
+      ctx.save();
+      ctx.globalAlpha = p.opacity;
+      ctx.fillStyle = p.color;
+      ctx.translate(p.x, p.y);
+      ctx.rotate(p.tiltAngle);
+      if (p.shape === 'rect') ctx.fillRect(-p.r / 2, -p.r / 2, p.r, p.r * 1.6);
+      else { ctx.beginPath(); ctx.arc(0, 0, p.r / 2, 0, Math.PI * 2); ctx.fill(); }
+      ctx.restore();
+    });
+    if (alive) frame = requestAnimationFrame(draw);
+    else ctx.clearRect(0, 0, canvas.width, canvas.height);
+  }
+  if (frame) cancelAnimationFrame(frame);
+  draw();
+}
 
 /* ═══════════════════════════════════════════════════════
    FITNESS
