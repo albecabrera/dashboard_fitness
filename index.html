@@ -723,6 +723,22 @@
     .photo-item:hover .photo-item-delete { opacity:1; }
 
     .photo-empty { text-align:center;padding:1rem;color:var(--text-muted);font-size:.82rem; }
+
+    /* ============================================================
+       BACKUP BAR
+    ============================================================ */
+    .backup-bar {
+      position:relative;z-index:1;
+      display:flex;align-items:center;justify-content:center;
+      gap:.75rem;flex-wrap:wrap;
+      padding:.65rem 2rem;
+      background:var(--surface);
+      box-shadow:0 2px 8px var(--neu-dark), 0 -1px 4px var(--neu-light);
+    }
+    .backup-bar span {
+      font-size:.75rem;color:var(--text-muted);margin-right:.25rem;
+    }
+    .backup-bar .btn { font-size:.78rem;padding:.38rem .8rem; }
   </style>
 </head>
 <body>
@@ -755,6 +771,18 @@
     </button>
   </div>
 </header>
+
+<!-- ============================================================
+     BACKUP BAR
+============================================================ -->
+<div class="backup-bar">
+  <span data-i18n="backupLabel">💾 Daten sichern:</span>
+  <button class="btn btn-indigo btn-sm" onclick="exportData()" data-i18n="backupExport">⬇ Exportieren</button>
+  <label class="btn btn-sky btn-sm" style="cursor:pointer;">
+    <span data-i18n="backupImport">⬆ Importieren</span>
+    <input type="file" id="importFileInput" accept=".json" style="display:none" />
+  </label>
+</div>
 
 <!-- ============================================================
      DASHBOARD GRID
@@ -1650,6 +1678,9 @@ const TRANSLATIONS = {
     photoSubtitle:   'Vorher / Nachher Galerie',
     photoDropHint:   'Fotos hier ablegen oder klicken zum Auswählen',
     photoEmpty:      'Noch keine Fotos hochgeladen.',
+    backupLabel:     '💾 Daten sichern:',
+    backupExport:    '⬇ Exportieren',
+    backupImport:    '⬆ Importieren',
   },
   es: {
     appTitle:        'Panel Personal',
@@ -1663,6 +1694,9 @@ const TRANSLATIONS = {
     photoSubtitle:   'Galería Antes / Después',
     photoDropHint:   'Arrastra fotos aquí o haz clic para seleccionar',
     photoEmpty:      'Aún no hay fotos subidas.',
+    backupLabel:     '💾 Guardar datos:',
+    backupExport:    '⬇ Exportar',
+    backupImport:    '⬆ Importar',
   },
   en: {
     appTitle:        'Personal Dashboard',
@@ -1676,6 +1710,9 @@ const TRANSLATIONS = {
     photoSubtitle:   'Before / After Gallery',
     photoDropHint:   'Drop photos here or click to select',
     photoEmpty:      'No photos uploaded yet.',
+    backupLabel:     '💾 Save data:',
+    backupExport:    '⬇ Export',
+    backupImport:    '⬆ Import',
   }
 };
 
@@ -1764,6 +1801,54 @@ dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover
 dropZone.addEventListener('drop', e => {
   e.preventDefault(); dropZone.classList.remove('dragover');
   handlePhotoFiles(e.dataTransfer.files);
+});
+
+/* ═══════════════════════════════════════════════════════
+   EXPORT / IMPORT
+═══════════════════════════════════════════════════════ */
+function exportData() {
+  const data = {
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    todos,
+    workouts,
+    weights,
+    photos,
+    fitnessGoal,
+    weightGoal,
+  };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href     = url;
+  a.download = `fitness-backup-${today()}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  toast('Backup exportiert ✅');
+}
+
+document.getElementById('importFileInput').addEventListener('change', function(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    try {
+      const data = JSON.parse(ev.target.result);
+      if (!data.version) throw new Error('Ungültiges Format');
+      if (Array.isArray(data.todos))    { todos    = data.todos;    save('todos', todos); }
+      if (Array.isArray(data.workouts)) { workouts = data.workouts; save('workouts', workouts); }
+      if (Array.isArray(data.weights))  { weights  = data.weights;  save('weights', weights); }
+      if (Array.isArray(data.photos))   { photos   = data.photos;   save('photos', photos); }
+      if (data.fitnessGoal)  { fitnessGoal = data.fitnessGoal; save('fitnessGoal', fitnessGoal); }
+      if (data.weightGoal)   { weightGoal  = data.weightGoal;  save('weightGoal',  weightGoal); }
+      renderTodos(); renderFitness(); renderWeight(); renderPhotos();
+      toast('Daten erfolgreich importiert 🎉');
+    } catch(err) {
+      toast('Fehler beim Import: ' + err.message);
+    }
+    e.target.value = '';
+  };
+  reader.readAsText(file);
 });
 
 /* ── INIT ── */
