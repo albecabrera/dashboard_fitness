@@ -6,6 +6,7 @@
   <title>Personal Dashboard</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js"></script>
 
   <style>
     /* ============================================================
@@ -164,13 +165,14 @@
     ============================================================ */
     .dashboard {
       position:relative;z-index:1;
-      display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem;
-      padding:1.75rem 2rem;max-width:1600px;margin:0 auto;
-      align-items: stretch;   /* ← alle Karten gleiches Stretch */
+      display:grid;grid-template-columns:repeat(4,1fr);gap:1.5rem;
+      padding:1.75rem 2rem;
+      align-items: stretch;
     }
 
-    @media (max-width:1100px) { .dashboard { grid-template-columns:1fr 1fr; } }
-    @media (max-width:700px)  { .dashboard { grid-template-columns:1fr;padding:1rem; } .app-header { padding:.9rem 1rem; } }
+    @media (max-width:1400px) { .dashboard { grid-template-columns:repeat(3,1fr); } }
+    @media (max-width:1000px) { .dashboard { grid-template-columns:1fr 1fr; } }
+    @media (max-width:650px)  { .dashboard { grid-template-columns:1fr;padding:1rem; } .app-header { padding:.9rem 1rem; } }
 
     /* ============================================================
        CARD  – flex-column, min-height
@@ -960,7 +962,7 @@
     <label class="photo-drop-zone" id="photoDropZone">
       <div class="photo-drop-zone-icon">📷</div>
       <p data-i18n="photoDropHint">Fotos hier ablegen oder klicken zum Auswählen</p>
-      <input type="file" id="photoFileInput" accept="image/*" multiple />
+      <input type="file" id="photoFileInput" accept="image/*,.heic,.heif,.HEIC,.HEIF" multiple />
     </label>
 
     <div class="scroll-area">
@@ -1725,16 +1727,33 @@ function renderPhotos() {
   });
 }
 
-function handlePhotoFiles(files) {
-  [...files].forEach(file => {
-    if (!file.type.startsWith('image/')) return;
-    const reader = new FileReader();
-    reader.onload = e => {
-      photos.push({ id: Date.now() + Math.random(), dataUrl: e.target.result, date: today() });
+async function handlePhotoFiles(files) {
+  for (const file of [...files]) {
+    const isHeic = file.type === 'image/heic' || file.type === 'image/heif'
+      || /\.(heic|heif)$/i.test(file.name);
+    const isImage = file.type.startsWith('image/') || isHeic;
+    if (!isImage) continue;
+
+    try {
+      let blob = file;
+      if (isHeic) {
+        toast('HEIC wird konvertiert …');
+        blob = await heic2any({ blob: file, toType: 'image/jpeg', quality: 0.88 });
+        if (Array.isArray(blob)) blob = blob[0];
+      }
+      const dataUrl = await new Promise((res, rej) => {
+        const reader = new FileReader();
+        reader.onload = e => res(e.target.result);
+        reader.onerror = rej;
+        reader.readAsDataURL(blob);
+      });
+      photos.push({ id: Date.now() + Math.random(), dataUrl, date: today(), name: file.name });
       savePhotos(); renderPhotos(); toast('Foto gespeichert 📸');
-    };
-    reader.readAsDataURL(file);
-  });
+    } catch (err) {
+      console.error('Foto-Fehler:', err);
+      toast('Fehler beim Laden: ' + file.name);
+    }
+  }
 }
 
 $('photoFileInput').addEventListener('change', e => handlePhotoFiles(e.target.files));
