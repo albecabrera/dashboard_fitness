@@ -43,28 +43,28 @@
     }
 
     [data-theme="dark"] {
-      --bg:           #1e2235;
-      --surface:      #1e2235;
+      --bg:           #141622;
+      --surface:      #1e2236;
       --surface2:     #252b42;
-      --border:       #2e354f;
-      --text:         #e8eaf6;
-      --text-muted:   #7b82a0;
-      --accent:       #818cf8;
-      --accent-soft:  #282d50;
-      --accent2:      #38bdf8;
-      --accent2-soft: #1a2e42;
-      --green:        #34d399;
-      --green-soft:   #0f2e22;
-      --red:          #f87171;
-      --red-soft:     #3b1515;
-      --neu-light:    #262d44;
-      --neu-dark:     #161927;
-      --shadow-sm:    3px 3px 6px var(--neu-dark), -3px -3px 6px var(--neu-light);
-      --shadow:       6px 6px 14px var(--neu-dark), -6px -6px 14px var(--neu-light);
-      --shadow-lg:    10px 10px 24px var(--neu-dark), -10px -10px 24px var(--neu-light);
-      --shadow-inset: inset 4px 4px 8px var(--neu-dark), inset -4px -4px 8px var(--neu-light);
-      --shadow-btn:   4px 4px 10px var(--neu-dark), -2px -2px 6px var(--neu-light);
-      --shadow-btn-active: inset 3px 3px 7px var(--neu-dark), inset -2px -2px 5px var(--neu-light);
+      --border:       #323858;
+      --text:         #f0f2ff;
+      --text-muted:   #8b93b8;
+      --accent:       #a5b4fc;
+      --accent-soft:  #2a3060;
+      --accent2:      #7dd3fc;
+      --accent2-soft: #0f2e45;
+      --green:        #6ee7b7;
+      --green-soft:   #0c3328;
+      --red:          #fca5a5;
+      --red-soft:     #4a1a1a;
+      --neu-light:    #28304a;
+      --neu-dark:     #0d0f1a;
+      --shadow-sm:    4px 4px 8px var(--neu-dark), -2px -2px 6px var(--neu-light);
+      --shadow:       7px 7px 16px var(--neu-dark), -4px -4px 10px var(--neu-light);
+      --shadow-lg:    12px 12px 28px var(--neu-dark), -6px -6px 14px var(--neu-light);
+      --shadow-inset: inset 4px 4px 9px var(--neu-dark), inset -3px -3px 7px var(--neu-light);
+      --shadow-btn:   5px 5px 12px var(--neu-dark), -2px -2px 6px var(--neu-light);
+      --shadow-btn-active: inset 4px 4px 8px var(--neu-dark), inset -2px -2px 5px var(--neu-light);
     }
 
     /* ============================================================
@@ -102,7 +102,7 @@
       animation: blobFloat 12s ease-in-out infinite alternate;
     }
 
-    [data-theme="dark"] .blob { opacity: .07; }
+    [data-theme="dark"] .blob { opacity: .12; }
 
     .blob-1 { width:520px;height:520px;background:var(--accent);top:-150px;left:-120px;animation-duration:14s; }
     .blob-2 { width:380px;height:380px;background:var(--accent2);top:20%;right:-100px;animation-duration:10s;animation-delay:-4s; }
@@ -318,6 +318,7 @@
       display:flex;align-items:center;justify-content:space-between;
       margin-bottom:.55rem;padding-bottom:.45rem;
       border-bottom:1px solid var(--border);flex-shrink:0;
+      transition:border-color var(--transition);
     }
     .kanban-col-title { font-size:.72rem;font-weight:600;text-transform:uppercase;letter-spacing:.07em; }
     #col-todo .kanban-col-title    { color:var(--accent); }
