@@ -533,15 +533,18 @@
     }
     .goal-row input:focus { box-shadow:var(--shadow-inset), 0 0 0 2px rgba(14,165,233,.25); }
 
-    .fitness-input-row { display:flex;gap:.45rem;margin-bottom:.8rem;flex-shrink:0; }
+    .fitness-input-row { display:flex;gap:.45rem;margin-bottom:.5rem;flex-shrink:0;flex-wrap:wrap; }
     .fitness-input-row select,
-    .fitness-input-row input[type="number"] {
+    .fitness-input-row input[type="number"],
+    .fitness-input-row input[type="text"],
+    .fitness-input-row input[type="date"] {
       flex:1;padding:.52rem .7rem;border:none;
       border-radius:var(--radius-sm);background:var(--surface);color:var(--text);
       font-family:inherit;font-size:.86rem;outline:none;
       box-shadow:var(--shadow-inset);
       transition:box-shadow var(--transition);
     }
+    .fitness-input-row input[type="date"] { flex:none;width:145px; }
     .fitness-input-row select:focus,
     .fitness-input-row input:focus { box-shadow:var(--shadow-inset), 0 0 0 2px rgba(14,165,233,.25); }
 
@@ -904,6 +907,10 @@
         <option value="💃 Tanzen">💃 Tanzen</option>
         <option value="🥊 Boxen">🥊 Boxen</option>
       </select>
+      <input type="text" id="workoutCustom" placeholder="Eigene Aktivität…" style="min-width:100px;" />
+    </div>
+    <div class="fitness-input-row">
+      <input type="date" id="workoutDate" />
       <input type="number" id="workoutDuration" placeholder="Min." min="1" max="600" style="width:72px;flex:none;" />
       <button class="btn btn-sky btn-sm" onclick="addWorkout()">＋ Log</button>
     </div>
@@ -1526,11 +1533,22 @@ function shiftWeek(dir){
   renderFitness();
 }
 
-/* ── Manual add (uses today's date) ── */
+/* ── Manual add ── */
 function addWorkout(){
-  const type=$('workoutType').value, dur=parseInt($('workoutDuration').value)||null;
-  workouts.push({type,duration:dur,date:today()}); save('workouts',workouts);
-  renderFitness(); $('workoutDuration').value=''; toast(`${type} geloggt 💪`);
+  const custom=$('workoutCustom').value.trim();
+  const type = custom || $('workoutType').value;
+  const dur  = parseInt($('workoutDuration').value)||null;
+  const date = $('workoutDate').value || today();
+  workouts.push({type,duration:dur,date}); save('workouts',workouts);
+  renderFitness();
+  $('workoutDuration').value='';
+  $('workoutCustom').value='';
+  $('workoutDate').value=today();
+  toast(`${type} geloggt 💪`);
+}
+
+function initWorkoutDate(){
+  $('workoutDate').value=today();
 }
 
 function saveFitnessGoal(){
@@ -1922,7 +1940,7 @@ document.getElementById('importFileInput').addEventListener('change', function(e
 });
 
 /* ── INIT ── */
-initTheme(); applyLang(currentLang); renderTodos(); renderFitness(); renderWeight();
+initTheme(); applyLang(currentLang); renderTodos(); renderFitness(); renderWeight(); initWorkoutDate();
 (async () => {
   // Alte Fotos aus localStorage zu IndexedDB migrieren
   const legacy = load('photos', []);
