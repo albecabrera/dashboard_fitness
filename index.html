@@ -728,6 +728,46 @@
     .photo-empty { text-align:center;padding:1rem;color:var(--text-muted);font-size:.82rem; }
 
     /* ============================================================
+       PHOTO LIGHTBOX
+    ============================================================ */
+    .photo-lightbox {
+      position:fixed;inset:0;background:rgba(0,0,0,.92);
+      z-index:1000;display:flex;flex-direction:column;
+      align-items:center;justify-content:center;
+      cursor:zoom-out;animation:fadeIn .2s ease;
+    }
+    .photo-lightbox img {
+      max-width:90vw;max-height:78vh;object-fit:contain;
+      border-radius:var(--radius-sm);
+      box-shadow:0 20px 60px rgba(0,0,0,.5);
+      cursor:default;
+    }
+    .photo-lightbox-info {
+      margin-top:1rem;display:flex;gap:1.5rem;align-items:center;
+      flex-wrap:wrap;justify-content:center;
+      color:#fff;font-size:.9rem;
+      background:rgba(255,255,255,.08);padding:.6rem 1.2rem;
+      border-radius:var(--radius-sm);
+    }
+    .photo-lightbox-info span { white-space:nowrap; }
+    .photo-lightbox-close {
+      position:absolute;top:1.5rem;right:1.5rem;
+      background:rgba(255,255,255,.15);border:none;border-radius:50%;
+      color:#fff;width:38px;height:38px;font-size:1.3rem;
+      cursor:pointer;display:grid;place-items:center;
+      transition:background .2s;
+    }
+    .photo-lightbox-close:hover { background:rgba(255,255,255,.3); }
+    .photo-item { cursor:pointer; }
+    .photo-item::after {
+      content:'🔍';position:absolute;inset:0;
+      display:grid;place-items:center;font-size:1.6rem;
+      background:rgba(0,0,0,.35);opacity:0;
+      transition:opacity .2s;border-radius:var(--radius-sm);
+    }
+    .photo-item:hover::after { opacity:1; }
+
+    /* ============================================================
        BACKUP BAR
     ============================================================ */
     .backup-bar {
@@ -1283,6 +1323,17 @@ const DAYS      = ['Mo','Di','Mi','Do','Fr','Sa','So'];
 const TYPES     = ['🏃 Laufen','🚴 Radfahren','🏋️ Kraft','🧘 Yoga','🏊 Schwimmen','⚽ Sport','💃 Tanzen','🥊 Boxen'];
 const TYPE_COLORS = ['#f97316','#0ea5e9','#8b5cf6','#10b981','#06b6d4','#22c55e','#ec4899','#ef4444'];
 
+/* ── Kcal per minute by emoji prefix ── */
+const KCAL_PER_MIN = {
+  '🏃':10, '🚴':8, '🏋':6, '🧘':3, '🏊':9, '⚽':7, '💃':5, '🥊':11,
+};
+function calcKcal(type, duration) {
+  if (!duration) return 0;
+  const emoji = [...(type||'')][0];
+  const rate = KCAL_PER_MIN[emoji] || 7;
+  return Math.round(rate * duration);
+}
+
 let weekOffset     = 0;   // 0 = current week, -1 = last week …
 let selectedDate   = null;
 let selectedType   = TYPES[0];
@@ -1320,7 +1371,12 @@ function renderFitness() {
   const count = currWorkouts.length;
   const pct   = clamp(Math.round(count/fitnessGoal*100),0,100);
   const pEl   = $('fitnessPct');
-  $('fitnessSubtitle').textContent = `${count} Einheit${count!==1?'en':''} diese Woche`;
+  const totalMin  = currWorkouts.reduce((s,w)=>s+(w.duration||0),0);
+  const totalKcal = currWorkouts.reduce((s,w)=>s+calcKcal(w.type,w.duration),0);
+  let subtitleParts = [`${count} Einheit${count!==1?'en':''} diese Woche`];
+  if(totalMin>0)  subtitleParts.push(`${totalMin} min`);
+  if(totalKcal>0) subtitleParts.push(`${totalKcal} kcal`);
+  $('fitnessSubtitle').textContent = subtitleParts.join(' · ');
   if(pEl.textContent!==pct+'%'){pEl.textContent=pct+'%';bump(pEl);}
   $('fitnessBar').style.width=pct+'%';
 
@@ -1405,13 +1461,16 @@ function renderFitness() {
   $('workoutEmpty').style.display=workouts.length?'none':'block';
   [...c.querySelectorAll('.workout-entry')].forEach(e=>e.remove());
   workouts.map((w,i)=>({...w,_idx:i})).reverse().slice(0,15).forEach(w=>{
+    const kcal=calcKcal(w.type,w.duration);
+    const durStr=w.duration?w.duration+' min':'–';
+    const kcalStr=kcal?` · ${kcal} kcal`:'';
     const entry=document.createElement('div'); entry.className='workout-entry';
     entry.innerHTML=`<div class="workout-entry-left">
       <span class="workout-badge">${w.type}</span>
       <span class="workout-duration">${fmt(w.date)}</span>
     </div>
     <div style="display:flex;align-items:center;gap:.2rem">
-      <span class="workout-duration">${w.duration?w.duration+' min':''}</span>
+      <span class="workout-duration">${durStr}${kcalStr}</span>
       <button class="entry-delete" title="Löschen">×</button>
     </div>`;
     entry.querySelector('.entry-delete').addEventListener('click',()=>{
@@ -1840,13 +1899,56 @@ function renderPhotos() {
     item.innerHTML = `<img src="${p.dataUrl}" alt="Fortschrittsfoto">
       <div class="photo-item-label">${fmt(p.date)}</div>
       <button class="photo-item-delete" title="Löschen">×</button>`;
-    item.querySelector('.photo-item-delete').addEventListener('click', async () => {
+    item.querySelector('.photo-item-delete').addEventListener('click', async e => {
+      e.stopPropagation();
       photos = photos.filter(x => x.id !== p.id);
       await dbDeletePhoto(p.id);
       renderPhotos(); toast('Foto gelöscht');
     });
+    item.addEventListener('click', e => {
+      if (!e.target.closest('.photo-item-delete')) openPhotoLightbox(p);
+    });
     gallery.appendChild(item);
   });
+}
+
+function openPhotoLightbox(photo) {
+  const dayWorkouts = workouts.filter(w => w.date === photo.date);
+  const totalKcal   = dayWorkouts.reduce((s,w) => s + calcKcal(w.type, w.duration), 0);
+  const activities  = dayWorkouts.map(w => w.type).join(', ') || 'Kein Training';
+
+  const overlay = document.createElement('div');
+  overlay.className = 'photo-lightbox';
+
+  const close = document.createElement('button');
+  close.className = 'photo-lightbox-close';
+  close.innerHTML = '×';
+  close.title = 'Schließen';
+
+  const img = document.createElement('img');
+  img.src = photo.dataUrl;
+  img.alt = 'Fortschrittsfoto';
+
+  const info = document.createElement('div');
+  info.className = 'photo-lightbox-info';
+  info.innerHTML =
+    `<span>📅 ${fmt(photo.date)}</span>` +
+    `<span>🏃 ${activities}</span>` +
+    (totalKcal ? `<span>🔥 ${totalKcal} kcal</span>` : '');
+
+  overlay.appendChild(close);
+  overlay.appendChild(img);
+  overlay.appendChild(info);
+
+  const dismiss = e => {
+    if (e.target === overlay || e.target === close) overlay.remove();
+  };
+  overlay.addEventListener('click', dismiss);
+  document.addEventListener('keydown', function esc(e) {
+    if (e.key === 'Escape') { overlay.remove(); document.removeEventListener('keydown', esc); }
+  });
+
+  document.body.appendChild(overlay);
 }
 
 async function handlePhotoFiles(files) {
