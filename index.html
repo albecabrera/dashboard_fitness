@@ -565,7 +565,7 @@
     /* ============================================================
        WEIGHT
     ============================================================ */
-    .weight-stats { display:grid;grid-template-columns:1fr 1fr 1fr;gap:.55rem;margin-bottom:1rem;flex-shrink:0; }
+    .weight-stats { display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:.55rem;margin-bottom:1rem;flex-shrink:0; }
     .stat-box {
       background:var(--surface);border:none;
       border-radius:var(--radius-sm);padding:.7rem;text-align:center;
@@ -997,6 +997,7 @@
       <div class="stat-box"><span class="stat-value" id="weightStart">–</span><p class="stat-label">Start</p></div>
       <div class="stat-box"><span class="stat-value" id="weightCurrent">–</span><p class="stat-label">Aktuell</p></div>
       <div class="stat-box"><span class="stat-value" id="weightGoalStat">–</span><p class="stat-label">Ziel</p></div>
+      <div class="stat-box"><span class="stat-value" id="kfaCurrent">–</span><p class="stat-label">KFA</p></div>
     </div>
 
     <div class="goal-row">
@@ -1011,7 +1012,8 @@
     </div>
 
     <div class="weight-input-row">
-      <input type="number" id="weightInput" placeholder="Gewicht in kg (z. B. 74.5)" step="0.1" min="30" max="300" />
+      <input type="number" id="weightInput" placeholder="Gewicht (kg)" step="0.1" min="30" max="300" />
+      <input type="number" id="kfaInput" placeholder="KFA (%)" step="0.1" min="1" max="60" style="max-width:7rem;" />
       <button class="btn btn-emerald btn-sm" onclick="addWeight()">＋ Eintragen</button>
     </div>
 
@@ -1629,6 +1631,8 @@ function renderWeight(){
   $('weightStart').textContent=start?start.toFixed(1)+' kg':'–';
   $('weightCurrent').textContent=current?current.toFixed(1)+' kg':'–';
   $('weightGoalStat').textContent=weightGoal?weightGoal+' kg':'–';
+  const latestKfa=sorted.length?sorted[sorted.length-1].kfa:null;
+  $('kfaCurrent').textContent=latestKfa!=null?latestKfa.toFixed(1)+' %':'–';
 
   if(sorted.length>=2){
     const diff=current-sorted[sorted.length-2].value;
@@ -1656,7 +1660,10 @@ function renderWeight(){
   [...c.querySelectorAll('.weight-entry')].forEach(e=>e.remove());
   weights.map((w,i)=>({...w,_idx:i})).sort((a,b)=>b.date.localeCompare(a.date)).slice(0,15).forEach(w=>{
     const entry=document.createElement('div'); entry.className='weight-entry';
-    entry.innerHTML=`<span class="weight-entry-val">${w.value.toFixed(1)} kg</span>
+    entry.innerHTML=`<div style="display:flex;align-items:baseline;gap:.55rem">
+        <span class="weight-entry-val">${w.value.toFixed(1)} kg</span>
+        ${w.kfa!=null?`<span style="font-size:.78rem;color:var(--text-muted)">${w.kfa.toFixed(1)} % KFA</span>`:''}
+      </div>
       <div style="display:flex;align-items:center;gap:.45rem">
         <span class="weight-entry-date">${fmt(w.date)}</span>
         <button class="entry-delete" title="Löschen">×</button>
@@ -1724,8 +1731,12 @@ function renderWeightChart(sorted){
 function addWeight(){
   const val=parseFloat($('weightInput').value);
   if(isNaN(val)||val<20||val>400){toast('Ungültiges Gewicht');return;}
-  weights.push({value:val,date:today()}); save('weights',weights); renderWeight();
-  $('weightInput').value=''; toast(`${val.toFixed(1)} kg eingetragen ⚖️`);
+  const kfaRaw=$('kfaInput').value;
+  const kfa=kfaRaw!==''?parseFloat(kfaRaw):null;
+  if(kfa!==null&&(isNaN(kfa)||kfa<1||kfa>60)){toast('Ungültiger KFA (1–60 %)');return;}
+  weights.push({value:val,kfa:kfa,date:today()}); save('weights',weights); renderWeight();
+  $('weightInput').value=''; $('kfaInput').value='';
+  toast(`${val.toFixed(1)} kg${kfa!==null?' · '+kfa.toFixed(1)+' %':''} eingetragen ⚖️`);
 }
 
 function saveWeightGoal(){
