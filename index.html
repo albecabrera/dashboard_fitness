@@ -602,6 +602,16 @@
     .weight-entry.removing { opacity:0;transform:translateX(22px);pointer-events:none; }
     .weight-entry-val  { font-family:'DM Serif Display',serif;font-size:1.02rem; }
     .weight-entry-date { color:var(--text-muted);font-size:.78rem; }
+    .weight-entry input.edit-val,
+    .weight-entry input.edit-kfa {
+      padding:.38rem .55rem;border:none;border-radius:var(--radius-sm);
+      background:var(--bg);color:var(--text);font-family:inherit;font-size:.84rem;
+      box-shadow:var(--shadow-inset);outline:none;
+    }
+    .weight-entry input.edit-val:focus,
+    .weight-entry input.edit-kfa:focus { box-shadow:var(--shadow-inset),0 0 0 2px rgba(16,185,129,.25); }
+    .entry-edit { background:none;border:none;cursor:pointer;font-size:.8rem;padding:.1rem .2rem;opacity:.55;transition:opacity .15s; }
+    .entry-edit:hover { opacity:1; }
 
     /* ============================================================
        BUTTONS
@@ -1665,18 +1675,47 @@ function renderWeight(){
   [...c.querySelectorAll('.weight-entry')].forEach(e=>e.remove());
   weights.map((w,i)=>({...w,_idx:i})).sort((a,b)=>b.date.localeCompare(a.date)).slice(0,15).forEach(w=>{
     const entry=document.createElement('div'); entry.className='weight-entry';
-    entry.innerHTML=`<div style="display:flex;align-items:baseline;gap:.55rem">
-        ${w.value!=null?`<span class="weight-entry-val">${w.value.toFixed(1)} kg</span>`:''}
-        ${w.kfa!=null?`<span style="font-size:.78rem;color:var(--text-muted)">${w.kfa.toFixed(1)} % KFA</span>`:''}
-      </div>
-      <div style="display:flex;align-items:center;gap:.45rem">
-        <span class="weight-entry-date">${fmt(w.date)}</span>
-        <button class="entry-delete" title="Löschen">×</button>
-      </div>`;
-    entry.querySelector('.entry-delete').addEventListener('click',()=>{
-      entry.classList.add('removing');
-      setTimeout(()=>{weights.splice(w._idx,1);save('weights',weights);renderWeight();toast('Eintrag gelöscht');},240);
-    });
+    const showView=()=>{
+      entry.innerHTML=`<div style="display:flex;align-items:baseline;gap:.55rem">
+          ${w.value!=null?`<span class="weight-entry-val">${w.value.toFixed(1)} kg</span>`:''}
+          ${w.kfa!=null?`<span style="font-size:.78rem;color:var(--text-muted)">${w.kfa.toFixed(1)} % KFA</span>`:''}
+        </div>
+        <div style="display:flex;align-items:center;gap:.45rem">
+          <span class="weight-entry-date">${fmt(w.date)}</span>
+          <button class="entry-edit" title="Bearbeiten">✏️</button>
+          <button class="entry-delete" title="Löschen">×</button>
+        </div>`;
+      entry.querySelector('.entry-edit').addEventListener('click',()=>showEdit());
+      entry.querySelector('.entry-delete').addEventListener('click',()=>{
+        entry.classList.add('removing');
+        setTimeout(()=>{weights.splice(w._idx,1);save('weights',weights);renderWeight();toast('Eintrag gelöscht');},240);
+      });
+    };
+    const showEdit=()=>{
+      entry.innerHTML=`<div style="display:flex;align-items:center;gap:.4rem;flex-wrap:wrap;width:100%">
+          <input class="edit-val" type="number" step="0.1" min="20" max="400" placeholder="kg"
+            value="${w.value!=null?w.value:''}" style="width:5.5rem;" />
+          <input class="edit-kfa" type="number" step="0.1" min="1" max="60" placeholder="KFA %"
+            value="${w.kfa!=null?w.kfa:''}" style="width:5.5rem;" />
+          <span style="font-size:.72rem;color:var(--text-muted);flex:1">${fmt(w.date)}</span>
+          <button class="entry-save btn btn-emerald btn-sm">✓</button>
+          <button class="entry-cancel entry-delete">✕</button>
+        </div>`;
+      entry.querySelector('.entry-save').addEventListener('click',()=>{
+        const newVal=entry.querySelector('.edit-val').value;
+        const newKfa=entry.querySelector('.edit-kfa').value;
+        const v=newVal!==''?parseFloat(newVal):null;
+        const k=newKfa!==''?parseFloat(newKfa):null;
+        if(v!==null&&(isNaN(v)||v<20||v>400)){toast('Ungültiges Gewicht');return;}
+        if(k!==null&&(isNaN(k)||k<1||k>60)){toast('Ungültiger KFA (1–60 %)');return;}
+        weights[w._idx].value=v;
+        weights[w._idx].kfa=k;
+        save('weights',weights);renderWeight();toast('Eintrag aktualisiert');
+      });
+      entry.querySelector('.entry-cancel').addEventListener('click',()=>showView());
+      entry.querySelector('.edit-val').focus();
+    };
+    showView();
     c.appendChild(entry);
   });
 }
