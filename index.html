@@ -717,63 +717,40 @@
     .photo-drop-zone p { font-size:.8rem;color:var(--text-muted);margin:0; }
     .photo-drop-zone input[type="file"] { display:none; }
 
-    /* Carousel */
-    .photo-carousel-wrap { position:relative; }
-    .photo-carousel {
-      position:relative;width:100%;overflow:hidden;
-      border-radius:var(--radius-sm);aspect-ratio:1;
-      background:var(--surface);box-shadow:var(--shadow-inset);
+    .photo-gallery {
+      display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));
+      gap:.75rem;
     }
-    .photo-carousel-track {
-      display:flex;height:100%;
-      transition:transform .4s cubic-bezier(.22,1,.36,1);
+    .photo-item {
+      border-radius:var(--radius-sm);overflow:hidden;
+      position:relative;aspect-ratio:1;
+      box-shadow:var(--shadow-sm);
+      transition:box-shadow var(--transition),transform var(--transition);
+      animation:kCardIn .3s cubic-bezier(.22,1,.36,1) both;
+      cursor:pointer;
     }
-    .photo-carousel-slide {
-      min-width:100%;height:100%;position:relative;flex-shrink:0;cursor:pointer;
+    .photo-item:hover { box-shadow:var(--shadow);transform:translateY(-2px); }
+    .photo-item img { width:100%;height:100%;object-fit:cover;display:block; }
+    .photo-item-label {
+      position:absolute;bottom:0;left:0;right:0;
+      background:linear-gradient(transparent,rgba(0,0,0,.55));
+      color:#fff;font-size:.62rem;padding:.3rem .4rem;
     }
-    .photo-carousel-slide img { width:100%;height:100%;object-fit:cover;display:block; }
-    .photo-carousel-slide::after {
+    .photo-item-delete {
+      position:absolute;top:.3rem;right:.3rem;
+      background:rgba(0,0,0,.55);border:none;border-radius:50%;
+      color:#fff;width:20px;height:20px;font-size:.7rem;
+      cursor:pointer;display:grid;place-items:center;
+      opacity:0;transition:opacity .2s;
+    }
+    .photo-item:hover .photo-item-delete { opacity:1; }
+    .photo-item::after {
       content:'🔍';position:absolute;inset:0;
       display:grid;place-items:center;font-size:1.6rem;
       background:rgba(0,0,0,.35);opacity:0;
       transition:opacity .2s;border-radius:var(--radius-sm);
     }
-    .photo-carousel-slide:hover::after { opacity:1; }
-    .photo-carousel-slide-label {
-      position:absolute;bottom:0;left:0;right:0;
-      background:linear-gradient(transparent,rgba(0,0,0,.55));
-      color:#fff;font-size:.7rem;padding:.4rem .6rem;
-      display:flex;justify-content:space-between;align-items:center;
-      pointer-events:none;
-    }
-    .photo-item-delete {
-      position:absolute;top:.4rem;right:.4rem;
-      background:rgba(0,0,0,.55);border:none;border-radius:50%;
-      color:#fff;width:22px;height:22px;font-size:.75rem;
-      cursor:pointer;display:grid;place-items:center;
-      opacity:0;transition:opacity .2s;z-index:3;
-    }
-    .photo-carousel-slide:hover .photo-item-delete { opacity:1; }
-    .photo-carousel-btn {
-      position:absolute;top:50%;transform:translateY(-50%);
-      background:rgba(0,0,0,.45);border:none;border-radius:50%;
-      color:#fff;width:36px;height:36px;font-size:1.4rem;
-      cursor:pointer;display:grid;place-items:center;
-      transition:background .2s;z-index:2;line-height:1;
-    }
-    .photo-carousel-btn:hover { background:rgba(0,0,0,.75); }
-    .photo-carousel-btn.prev { left:.5rem; }
-    .photo-carousel-btn.next { right:.5rem; }
-    .photo-carousel-dots {
-      display:flex;gap:.4rem;justify-content:center;
-      margin-top:.65rem;flex-wrap:wrap;min-height:14px;
-    }
-    .photo-carousel-dot {
-      width:8px;height:8px;border-radius:50%;
-      background:var(--text-muted);border:none;cursor:pointer;
-      padding:0;transition:background .2s,transform .2s;
-    }
-    .photo-carousel-dot.active { background:var(--accent);transform:scale(1.35); }
+    .photo-item:hover::after { opacity:1; }
 
     .photo-empty { text-align:center;padding:1rem;color:var(--text-muted);font-size:.82rem; }
 
@@ -818,6 +795,16 @@
     .photo-lightbox-nav:hover { background:rgba(255,255,255,.3); }
     .photo-lightbox-prev { left:1.5rem; }
     .photo-lightbox-next { right:1.5rem; }
+    .photo-lightbox-dots {
+      display:flex;gap:.4rem;justify-content:center;
+      margin-top:.75rem;flex-wrap:wrap;
+    }
+    .photo-lightbox-dot {
+      width:8px;height:8px;border-radius:50%;
+      background:rgba(255,255,255,.35);border:none;cursor:pointer;
+      padding:0;transition:background .2s,transform .2s;
+    }
+    .photo-lightbox-dot.active { background:#fff;transform:scale(1.35); }
 
     /* ============================================================
        BACKUP BAR
@@ -1114,14 +1101,10 @@
       <input type="file" id="photoFileInput" accept="image/*,.heic,.heif,.HEIC,.HEIF" multiple />
     </label>
 
-    <div class="photo-carousel-wrap">
-      <div class="photo-carousel" id="photoCarousel">
-        <div class="photo-carousel-track" id="photoCarouselTrack"></div>
-        <button class="photo-carousel-btn prev" id="photoPrev">&#8249;</button>
-        <button class="photo-carousel-btn next" id="photoNext">&#8250;</button>
+    <div class="scroll-area">
+      <div class="photo-gallery" id="photoGallery">
+        <div class="photo-empty" id="photoEmpty" data-i18n="photoEmpty">Noch keine Fotos hochgeladen.</div>
       </div>
-      <div class="photo-carousel-dots" id="photoCarouselDots"></div>
-      <div class="photo-empty" id="photoEmpty" data-i18n="photoEmpty">Noch keine Fotos hochgeladen.</div>
     </div>
   </section>
 
@@ -2080,108 +2063,33 @@ function resizeToDataUrl(blob, maxPx = 1920, quality = 0.85) {
   });
 }
 
-let carouselIdx = 0;
-let carouselTimer = null;
-
 function renderPhotos() {
-  const track = $('photoCarouselTrack');
-  const dots  = $('photoCarouselDots');
-  const carousel = $('photoCarousel');
-  const empty = $('photoEmpty');
-
-  track.innerHTML = '';
-  dots.innerHTML  = '';
-
-  if (!photos.length) {
-    empty.style.display   = 'block';
-    carousel.style.visibility = 'hidden';
-    dots.style.display    = 'none';
-    stopCarouselTimer();
-    return;
-  }
-
-  empty.style.display       = 'none';
-  carousel.style.visibility = 'visible';
-  dots.style.display        = 'flex';
-
-  // Show in chronological (creation) order — oldest first
+  const gallery = $('photoGallery');
+  gallery.querySelectorAll('.photo-item').forEach(el => el.remove());
+  $('photoEmpty').style.display = photos.length ? 'none' : 'block';
+  // Älteste zuerst (Entstehungsreihenfolge) → im Karussell chronologisch
   photos.forEach((p, i) => {
-    const slide = document.createElement('div');
-    slide.className = 'photo-carousel-slide';
-    slide.innerHTML =
-      `<img src="${p.dataUrl}" alt="Fortschrittsfoto">` +
-      `<div class="photo-carousel-slide-label">` +
-        `<span>${fmt(p.date)}</span>` +
-        `<span>${i + 1} / ${photos.length}</span>` +
-      `</div>`;
-
-    const delBtn = document.createElement('button');
-    delBtn.className = 'photo-item-delete';
-    delBtn.title = 'Löschen';
-    delBtn.innerHTML = '×';
-    delBtn.addEventListener('click', async e => {
+    const item = document.createElement('div');
+    item.className = 'photo-item';
+    item.innerHTML = `<img src="${p.dataUrl}" alt="Fortschrittsfoto">
+      <div class="photo-item-label">${fmt(p.date)}</div>
+      <button class="photo-item-delete" title="Löschen">×</button>`;
+    item.querySelector('.photo-item-delete').addEventListener('click', async e => {
       e.stopPropagation();
       photos = photos.filter(x => x.id !== p.id);
       await dbDeletePhoto(p.id);
-      if (carouselIdx >= photos.length) carouselIdx = Math.max(0, photos.length - 1);
-      renderPhotos();
-      toast('Foto gelöscht');
+      renderPhotos(); toast('Foto gelöscht');
     });
-    slide.appendChild(delBtn);
-
-    slide.addEventListener('click', e => {
+    item.addEventListener('click', e => {
       if (!e.target.closest('.photo-item-delete')) openPhotoLightbox(i);
     });
-
-    track.appendChild(slide);
-
-    const dot = document.createElement('button');
-    dot.className = 'photo-carousel-dot' + (i === carouselIdx ? ' active' : '');
-    dot.addEventListener('click', () => { goToSlide(i); startCarouselTimer(); });
-    dots.appendChild(dot);
-  });
-
-  goToSlide(carouselIdx, false);
-  startCarouselTimer();
-}
-
-function goToSlide(idx, animate = true) {
-  if (!photos.length) return;
-  carouselIdx = ((idx % photos.length) + photos.length) % photos.length;
-  const track = $('photoCarouselTrack');
-  if (!animate) track.style.transition = 'none';
-  track.style.transform = `translateX(-${carouselIdx * 100}%)`;
-  if (!animate) requestAnimationFrame(() => { track.style.transition = ''; });
-  $('photoCarouselDots').querySelectorAll('.photo-carousel-dot').forEach((d, i) => {
-    d.classList.toggle('active', i === carouselIdx);
+    gallery.appendChild(item);
   });
 }
-
-function startCarouselTimer() {
-  stopCarouselTimer();
-  if (photos.length > 1) {
-    carouselTimer = setInterval(() => goToSlide(carouselIdx + 1), 5000);
-  }
-}
-function stopCarouselTimer() {
-  if (carouselTimer) { clearInterval(carouselTimer); carouselTimer = null; }
-}
-
-$('photoPrev').addEventListener('click', e => {
-  e.stopPropagation();
-  goToSlide(carouselIdx - 1);
-  startCarouselTimer();
-});
-$('photoNext').addEventListener('click', e => {
-  e.stopPropagation();
-  goToSlide(carouselIdx + 1);
-  startCarouselTimer();
-});
-$('photoCarousel').addEventListener('mouseenter', stopCarouselTimer);
-$('photoCarousel').addEventListener('mouseleave', () => { if (photos.length) startCarouselTimer(); });
 
 function openPhotoLightbox(startIdx) {
   let idx = startIdx;
+  let lbTimer = null;
 
   const overlay = document.createElement('div');
   overlay.className = 'photo-lightbox';
@@ -2193,6 +2101,7 @@ function openPhotoLightbox(startIdx) {
 
   const img = document.createElement('img');
   img.alt = 'Fortschrittsfoto';
+  img.style.cursor = 'zoom-out';
 
   const info = document.createElement('div');
   info.className = 'photo-lightbox-info';
@@ -2206,6 +2115,20 @@ function openPhotoLightbox(startIdx) {
   nextBtn.className = 'photo-lightbox-nav photo-lightbox-next';
   nextBtn.innerHTML = '&#8250;';
   nextBtn.title = 'Nächstes Foto';
+
+  const dotsWrap = document.createElement('div');
+  dotsWrap.className = 'photo-lightbox-dots';
+
+  function buildDots() {
+    dotsWrap.innerHTML = '';
+    if (photos.length <= 1) return;
+    photos.forEach((_, i) => {
+      const dot = document.createElement('button');
+      dot.className = 'photo-lightbox-dot' + (i === idx ? ' active' : '');
+      dot.addEventListener('click', e => { e.stopPropagation(); idx = i; update(); resetTimer(); });
+      dotsWrap.appendChild(dot);
+    });
+  }
 
   function update() {
     idx = ((idx % photos.length) + photos.length) % photos.length;
@@ -2222,24 +2145,37 @@ function openPhotoLightbox(startIdx) {
     const showNav = photos.length > 1;
     prevBtn.style.display = showNav ? 'grid' : 'none';
     nextBtn.style.display = showNav ? 'grid' : 'none';
+    // Update dots
+    dotsWrap.querySelectorAll('.photo-lightbox-dot').forEach((d, i) => {
+      d.classList.toggle('active', i === idx);
+    });
   }
 
-  prevBtn.addEventListener('click', e => { e.stopPropagation(); idx--; update(); });
-  nextBtn.addEventListener('click', e => { e.stopPropagation(); idx++; update(); });
+  function resetTimer() {
+    if (lbTimer) { clearInterval(lbTimer); lbTimer = null; }
+    if (photos.length > 1) {
+      lbTimer = setInterval(() => { idx++; update(); }, 5000);
+    }
+  }
+
+  function closeLightbox() {
+    if (lbTimer) clearInterval(lbTimer);
+    overlay.remove();
+    document.removeEventListener('keydown', keyHandler);
+  }
+
+  prevBtn.addEventListener('click', e => { e.stopPropagation(); idx--; update(); resetTimer(); });
+  nextBtn.addEventListener('click', e => { e.stopPropagation(); idx++; update(); resetTimer(); });
 
   function keyHandler(e) {
-    if (e.key === 'Escape')      { overlay.remove(); document.removeEventListener('keydown', keyHandler); }
-    if (e.key === 'ArrowLeft')   { idx--; update(); }
-    if (e.key === 'ArrowRight')  { idx++; update(); }
+    if (e.key === 'Escape')     closeLightbox();
+    if (e.key === 'ArrowLeft')  { idx--; update(); resetTimer(); }
+    if (e.key === 'ArrowRight') { idx++; update(); resetTimer(); }
   }
   document.addEventListener('keydown', keyHandler);
 
-  img.style.cursor = 'zoom-out';
   overlay.addEventListener('click', e => {
-    if (e.target === overlay || e.target === close || e.target === img) {
-      overlay.remove();
-      document.removeEventListener('keydown', keyHandler);
-    }
+    if (e.target === overlay || e.target === close || e.target === img) closeLightbox();
   });
 
   overlay.appendChild(close);
@@ -2247,8 +2183,11 @@ function openPhotoLightbox(startIdx) {
   overlay.appendChild(img);
   overlay.appendChild(nextBtn);
   overlay.appendChild(info);
+  overlay.appendChild(dotsWrap);
 
+  buildDots();
   update();
+  resetTimer();
   document.body.appendChild(overlay);
 }
 
