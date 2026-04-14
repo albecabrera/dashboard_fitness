@@ -573,7 +573,7 @@
     /* ============================================================
        WEIGHT
     ============================================================ */
-    .weight-stats { display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:.55rem;margin-bottom:1rem;flex-shrink:0; }
+    .weight-stats { display:grid;grid-template-columns:repeat(3,1fr);gap:.55rem;margin-bottom:1rem;flex-shrink:0; }
     .stat-box {
       background:var(--surface);border:none;
       border-radius:var(--radius-sm);padding:.7rem;text-align:center;
@@ -1004,7 +1004,7 @@
 
     <div class="progress-section">
       <div class="progress-meta">
-        <span class="progress-label">Zielfortschritt</span>
+        <span class="progress-label">Gewicht – Zielfortschritt</span>
         <span class="progress-value" id="weightPct">–</span>
       </div>
       <div class="progress-track">
@@ -1012,11 +1012,23 @@
       </div>
     </div>
 
+    <div class="progress-section">
+      <div class="progress-meta">
+        <span class="progress-label">KFA – Zielfortschritt</span>
+        <span class="progress-value" id="kfaPct">–</span>
+      </div>
+      <div class="progress-track">
+        <div class="progress-fill fill-emerald" id="kfaBar"></div>
+      </div>
+    </div>
+
     <div class="weight-stats">
-      <div class="stat-box"><span class="stat-value" id="weightStart">–</span><p class="stat-label">Start</p></div>
-      <div class="stat-box"><span class="stat-value" id="weightCurrent">–</span><p class="stat-label">Aktuell</p></div>
-      <div class="stat-box"><span class="stat-value" id="weightGoalStat">–</span><p class="stat-label">Ziel</p></div>
-      <div class="stat-box"><span class="stat-value" id="kfaCurrent">–</span><p class="stat-label">KFA</p></div>
+      <div class="stat-box"><span class="stat-value" id="weightStart">–</span><p class="stat-label">Gewicht Start</p></div>
+      <div class="stat-box"><span class="stat-value" id="weightCurrent">–</span><p class="stat-label">Gewicht Aktuell</p></div>
+      <div class="stat-box"><span class="stat-value" id="weightGoalStat">–</span><p class="stat-label">Gewicht Ziel</p></div>
+      <div class="stat-box"><span class="stat-value" id="kfaStartStat">–</span><p class="stat-label">KFA Start</p></div>
+      <div class="stat-box"><span class="stat-value" id="kfaCurrent">–</span><p class="stat-label">KFA Aktuell</p></div>
+      <div class="stat-box"><span class="stat-value" id="kfaGoalStat">–</span><p class="stat-label">KFA Ziel</p></div>
     </div>
 
     <div class="goal-row">
@@ -1024,6 +1036,13 @@
       <input type="number" id="weightGoalInput" step="0.1" min="30" max="300" placeholder="kg" />
       <span style="font-size:.78rem;color:var(--text-muted)">kg</span>
       <button class="btn btn-emerald btn-sm" onclick="saveWeightGoal()">Speichern</button>
+    </div>
+
+    <div class="goal-row">
+      <label for="kfaGoalInput">Ziel-KFA:</label>
+      <input type="number" id="kfaGoalInput" step="0.1" min="1" max="60" placeholder="%" />
+      <span style="font-size:.78rem;color:var(--text-muted)">%</span>
+      <button class="btn btn-emerald btn-sm" onclick="saveKfaGoal()">Speichern</button>
     </div>
 
     <div class="weight-chart">
@@ -1683,9 +1702,11 @@ function saveFitnessGoal(){
 ═══════════════════════════════════════════════════════ */
 let weights=load('weights',[]);
 let weightGoal=load('weightGoal',null);
+let kfaGoal=load('kfaGoal',null);
 
 function renderWeight(){
   if(weightGoal!==null)$('weightGoalInput').value=weightGoal;
+  if(kfaGoal!==null)$('kfaGoalInput').value=kfaGoal;
   const sorted=[...weights].sort((a,b)=>a.date.localeCompare(b.date));
   const withVal=sorted.filter(w=>w.value!=null);
   const current=withVal.length?withVal[withVal.length-1].value:null;
@@ -1695,7 +1716,10 @@ function renderWeight(){
   $('weightGoalStat').textContent=weightGoal?weightGoal+' kg':'–';
   const withKfa=sorted.filter(w=>w.kfa!=null);
   const latestKfa=withKfa.length?withKfa[withKfa.length-1].kfa:null;
+  const firstKfa=withKfa.length?withKfa[0].kfa:null;
+  $('kfaStartStat').textContent=firstKfa!=null?firstKfa.toFixed(1)+' %':'–';
   $('kfaCurrent').textContent=latestKfa!=null?latestKfa.toFixed(1)+' %':'–';
+  $('kfaGoalStat').textContent=kfaGoal!=null?kfaGoal+' %':'–';
 
   if(withVal.length>=2){
     const prev=withVal[withVal.length-2].value;
@@ -1716,6 +1740,14 @@ function renderWeight(){
     if(pEl.textContent!==pct+'%'){pEl.textContent=pct+'%';bump(pEl);}
     $('weightBar').style.width=pct+'%';
   } else { pEl.textContent='–'; $('weightBar').style.width='0%'; }
+
+  const kPel=$('kfaPct');
+  if(firstKfa!=null&&latestKfa!=null&&kfaGoal!=null){
+    const td=firstKfa-kfaGoal, ach=firstKfa-latestKfa;
+    const pct=Math.abs(td)<0.01?(latestKfa===kfaGoal?100:0):clamp(Math.round(ach/td*100),0,100);
+    if(kPel.textContent!==pct+'%'){kPel.textContent=pct+'%';bump(kPel);}
+    $('kfaBar').style.width=pct+'%';
+  } else { kPel.textContent='–'; $('kfaBar').style.width='0%'; }
 
   renderWeightChart(sorted);
 
@@ -1848,6 +1880,11 @@ function addKfa(){
 function saveWeightGoal(){
   const v=parseFloat($('weightGoalInput').value); if(isNaN(v)||v<20||v>400)return;
   weightGoal=v; save('weightGoal',weightGoal); renderWeight(); toast('Zielgewicht gespeichert');
+}
+
+function saveKfaGoal(){
+  const v=parseFloat($('kfaGoalInput').value); if(isNaN(v)||v<1||v>60)return;
+  kfaGoal=v; save('kfaGoal',kfaGoal); renderWeight(); toast('KFA-Ziel gespeichert');
 }
 
 function resetAllWeights(){
