@@ -559,6 +559,14 @@
     }
     .workout-entry.removing { opacity:0;transform:translateX(22px);pointer-events:none; }
     .workout-entry-left { display:flex;align-items:center;gap:.45rem; }
+    .workout-entry input.edit-dur,
+    .workout-entry input.edit-kcal {
+      padding:.38rem .5rem;border:none;border-radius:var(--radius-sm);
+      background:var(--bg);color:var(--text);font-family:inherit;font-size:.82rem;
+      box-shadow:var(--shadow-inset);outline:none;
+    }
+    .workout-entry input.edit-dur:focus,
+    .workout-entry input.edit-kcal:focus { box-shadow:var(--shadow-inset),0 0 0 2px rgba(14,165,233,.25); }
     .workout-badge { font-size:.68rem;font-weight:600;padding:.13rem .48rem;border-radius:99px;background:var(--accent2-soft);color:var(--accent2); }
     .workout-duration { color:var(--text-muted);font-size:.78rem; }
 
@@ -1386,7 +1394,7 @@ function renderFitness() {
   const pct   = clamp(Math.round(count/fitnessGoal*100),0,100);
   const pEl   = $('fitnessPct');
   const totalMin  = currWorkouts.reduce((s,w)=>s+(w.duration||0),0);
-  const totalKcal = currWorkouts.reduce((s,w)=>s+calcKcal(w.type,w.duration),0);
+  const totalKcal = currWorkouts.reduce((s,w)=>s+(w.kcalOverride!=null?w.kcalOverride:calcKcal(w.type,w.duration)),0);
   let subtitleParts = [`${count} Einheit${count!==1?'en':''} diese Woche`];
   if(totalMin>0)  subtitleParts.push(`${totalMin} min`);
   if(totalKcal>0) subtitleParts.push(`${totalKcal} kcal`);
@@ -1475,22 +1483,63 @@ function renderFitness() {
   $('workoutEmpty').style.display=workouts.length?'none':'block';
   [...c.querySelectorAll('.workout-entry')].forEach(e=>e.remove());
   workouts.map((w,i)=>({...w,_idx:i})).reverse().slice(0,15).forEach(w=>{
-    const kcal=calcKcal(w.type,w.duration);
-    const durStr=w.duration?w.duration+' min':'–';
-    const kcalStr=kcal?` · ${kcal} kcal`:'';
+    const getKcal=wo=>(wo.kcalOverride!=null?wo.kcalOverride:calcKcal(wo.type,wo.duration));
     const entry=document.createElement('div'); entry.className='workout-entry';
-    entry.innerHTML=`<div class="workout-entry-left">
-      <span class="workout-badge">${w.type}</span>
-      <span class="workout-duration">${fmt(w.date)}</span>
-    </div>
-    <div style="display:flex;align-items:center;gap:.2rem">
-      <span class="workout-duration">${durStr}${kcalStr}</span>
-      <button class="entry-delete" title="Löschen">×</button>
-    </div>`;
-    entry.querySelector('.entry-delete').addEventListener('click',()=>{
-      entry.classList.add('removing');
-      setTimeout(()=>{workouts.splice(w._idx,1);save('workouts',workouts);renderFitness();toast('Einheit gelöscht');},240);
-    });
+
+    const showView=()=>{
+      const kcal=getKcal(w);
+      const durStr=w.duration?w.duration+' min':'–';
+      const kcalStr=kcal?` · ${kcal} kcal`:'';
+      entry.innerHTML=`<div class="workout-entry-left">
+        <span class="workout-badge">${w.type}</span>
+        <span class="workout-duration">${fmt(w.date)}</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:.2rem">
+        <span class="workout-duration">${durStr}${kcalStr}</span>
+        <button class="entry-edit" title="Bearbeiten">✏️</button>
+        <button class="entry-delete" title="Löschen">×</button>
+      </div>`;
+      entry.querySelector('.entry-edit').addEventListener('click',()=>showEdit());
+      entry.querySelector('.entry-delete').addEventListener('click',()=>{
+        entry.classList.add('removing');
+        setTimeout(()=>{workouts.splice(w._idx,1);save('workouts',workouts);renderFitness();toast('Einheit gelöscht');},240);
+      });
+    };
+
+    const showEdit=()=>{
+      const typeOpts=TYPES.map(t=>`<option value="${t}"${t===w.type?' selected':''}>${t}</option>`).join('');
+      const curKcal=getKcal(w)||'';
+      entry.innerHTML=`<div style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:center;width:100%">
+        <select class="edit-type" style="flex:1;min-width:7rem;padding:.38rem .5rem;border:none;border-radius:var(--radius-sm);background:var(--bg);color:var(--text);font-family:inherit;font-size:.82rem;box-shadow:var(--shadow-inset);outline:none;">${typeOpts}</select>
+        <input class="edit-dur" type="number" min="1" max="600" placeholder="min"
+          value="${w.duration||''}" style="width:4.5rem;" />
+        <input class="edit-kcal" type="number" min="0" max="9999" placeholder="kcal"
+          value="${curKcal}" style="width:4.8rem;" />
+        <span style="font-size:.72rem;color:var(--text-muted);flex:1;white-space:nowrap">${fmt(w.date)}</span>
+        <button class="entry-save btn btn-sky btn-sm">✓</button>
+        <button class="entry-cancel entry-delete">✕</button>
+      </div>`;
+      entry.querySelector('.entry-save').addEventListener('click',()=>{
+        const newType=entry.querySelector('.edit-type').value;
+        const durRaw=entry.querySelector('.edit-dur').value;
+        const kcalRaw=entry.querySelector('.edit-kcal').value;
+        const dur=durRaw!==''?parseInt(durRaw):null;
+        const kcalInput=kcalRaw!==''?parseInt(kcalRaw):null;
+        if(dur!==null&&(isNaN(dur)||dur<1||dur>600)){toast('Ungültige Dauer (1–600 min)');return;}
+        if(kcalInput!==null&&(isNaN(kcalInput)||kcalInput<0)){toast('Ungültige kcal');return;}
+        workouts[w._idx].type=newType;
+        workouts[w._idx].duration=dur;
+        // Only store override if user explicitly changed kcal from calculated
+        const autoKcal=calcKcal(newType,dur);
+        workouts[w._idx].kcalOverride=(kcalInput!==null&&kcalInput!==autoKcal)?kcalInput:null;
+        w=Object.assign(w,workouts[w._idx]);
+        save('workouts',workouts);renderFitness();toast('Aktivität aktualisiert');
+      });
+      entry.querySelector('.entry-cancel').addEventListener('click',()=>showView());
+      entry.querySelector('.edit-dur').focus();
+    };
+
+    showView();
     c.appendChild(entry);
   });
 }
