@@ -576,15 +576,16 @@
     .stat-value { font-family:'DM Serif Display',serif;font-size:1.25rem;display:block;line-height:1; }
     .stat-label { font-size:.67rem;color:var(--text-muted);margin-top:.22rem;text-transform:uppercase;letter-spacing:.05em; }
 
-    .weight-input-row { display:flex;gap:.5rem;margin-bottom:.85rem;flex-shrink:0; }
+    .weight-input-row { display:flex;gap:.5rem;margin-bottom:.85rem;flex-shrink:0;flex-wrap:wrap; }
     .weight-input-row input {
-      flex:1;padding:.58rem .85rem;border:none;
+      flex:1;min-width:6rem;padding:.58rem .85rem;border:none;
       border-radius:var(--radius-sm);background:var(--surface);color:var(--text);
       font-family:inherit;font-size:.875rem;outline:none;
       box-shadow:var(--shadow-inset);
       transition:box-shadow var(--transition);
     }
     .weight-input-row input:focus { box-shadow:var(--shadow-inset), 0 0 0 2px rgba(16,185,129,.25); }
+    .weight-input-row .divider-v { width:1px;background:var(--border);align-self:stretch;margin:0 .15rem; }
 
     .weight-chart { width:100%;height:96px;margin-bottom:.8rem;border-radius:var(--radius-sm);overflow:hidden;flex-shrink:0; }
     .weight-chart svg { width:100%;height:100%; }
@@ -1013,8 +1014,9 @@
 
     <div class="weight-input-row">
       <input type="number" id="weightInput" placeholder="Gewicht (kg)" step="0.1" min="30" max="300" />
-      <input type="number" id="kfaInput" placeholder="KFA (%)" step="0.1" min="1" max="60" style="max-width:7rem;" />
-      <button class="btn btn-emerald btn-sm" onclick="addWeight()">＋ Eintragen</button>
+      <button class="btn btn-emerald btn-sm" onclick="addWeight()">＋ Gewicht</button>
+      <input type="number" id="kfaInput" placeholder="KFA (%)" step="0.1" min="1" max="60" />
+      <button class="btn btn-emerald btn-sm" onclick="addKfa()">＋ KFA</button>
     </div>
 
     <div class="scroll-area">
@@ -1626,16 +1628,19 @@ let weightGoal=load('weightGoal',null);
 function renderWeight(){
   if(weightGoal!==null)$('weightGoalInput').value=weightGoal;
   const sorted=[...weights].sort((a,b)=>a.date.localeCompare(b.date));
-  const current=sorted.length?sorted[sorted.length-1].value:null;
-  const start=sorted.length?sorted[0].value:null;
+  const withVal=sorted.filter(w=>w.value!=null);
+  const current=withVal.length?withVal[withVal.length-1].value:null;
+  const start=withVal.length?withVal[0].value:null;
   $('weightStart').textContent=start?start.toFixed(1)+' kg':'–';
   $('weightCurrent').textContent=current?current.toFixed(1)+' kg':'–';
   $('weightGoalStat').textContent=weightGoal?weightGoal+' kg':'–';
-  const latestKfa=sorted.length?sorted[sorted.length-1].kfa:null;
+  const withKfa=sorted.filter(w=>w.kfa!=null);
+  const latestKfa=withKfa.length?withKfa[withKfa.length-1].kfa:null;
   $('kfaCurrent').textContent=latestKfa!=null?latestKfa.toFixed(1)+' %':'–';
 
-  if(sorted.length>=2){
-    const diff=current-sorted[sorted.length-2].value;
+  if(withVal.length>=2){
+    const prev=withVal[withVal.length-2].value;
+    const diff=current-prev;
     const sign=diff>0?'▲':diff<0?'▼':'→';
     const cls=diff>0?'trend-up':diff<0?'trend-down':'trend-flat';
     $('weightSubtitle').innerHTML=`Aktuell: <strong>${current.toFixed(1)} kg</strong> <span class="${cls}">${sign} ${Math.abs(diff).toFixed(1)}</span>`;
@@ -1661,7 +1666,7 @@ function renderWeight(){
   weights.map((w,i)=>({...w,_idx:i})).sort((a,b)=>b.date.localeCompare(a.date)).slice(0,15).forEach(w=>{
     const entry=document.createElement('div'); entry.className='weight-entry';
     entry.innerHTML=`<div style="display:flex;align-items:baseline;gap:.55rem">
-        <span class="weight-entry-val">${w.value.toFixed(1)} kg</span>
+        ${w.value!=null?`<span class="weight-entry-val">${w.value.toFixed(1)} kg</span>`:''}
         ${w.kfa!=null?`<span style="font-size:.78rem;color:var(--text-muted)">${w.kfa.toFixed(1)} % KFA</span>`:''}
       </div>
       <div style="display:flex;align-items:center;gap:.45rem">
@@ -1678,7 +1683,9 @@ function renderWeight(){
 
 function renderWeightChart(sorted){
   const svg=$('weightSvg'); svg.innerHTML='';
-  if(sorted.length<2)return;
+  const sorted2=sorted.filter(w=>w.value!=null);
+  if(sorted2.length<2)return;
+  sorted=sorted2;
   const vals=sorted.map(w=>w.value);
   const minV=Math.min(...vals)-1, maxV=Math.max(...vals)+1;
   const W=300,H=96,pad={l:8,r:8,t:8,b:8};
@@ -1731,12 +1738,23 @@ function renderWeightChart(sorted){
 function addWeight(){
   const val=parseFloat($('weightInput').value);
   if(isNaN(val)||val<20||val>400){toast('Ungültiges Gewicht');return;}
-  const kfaRaw=$('kfaInput').value;
-  const kfa=kfaRaw!==''?parseFloat(kfaRaw):null;
-  if(kfa!==null&&(isNaN(kfa)||kfa<1||kfa>60)){toast('Ungültiger KFA (1–60 %)');return;}
-  weights.push({value:val,kfa:kfa,date:today()}); save('weights',weights); renderWeight();
-  $('weightInput').value=''; $('kfaInput').value='';
-  toast(`${val.toFixed(1)} kg${kfa!==null?' · '+kfa.toFixed(1)+' %':''} eingetragen ⚖️`);
+  const t=today();
+  const existing=weights.find(w=>w.date===t);
+  if(existing){existing.value=val;}else{weights.push({value:val,kfa:null,date:t});}
+  save('weights',weights); renderWeight();
+  $('weightInput').value='';
+  toast(`${val.toFixed(1)} kg eingetragen ⚖️`);
+}
+
+function addKfa(){
+  const kfa=parseFloat($('kfaInput').value);
+  if(isNaN(kfa)||kfa<1||kfa>60){toast('Ungültiger KFA (1–60 %)');return;}
+  const t=today();
+  const existing=weights.find(w=>w.date===t);
+  if(existing){existing.kfa=kfa;}else{weights.push({value:null,kfa:kfa,date:t});}
+  save('weights',weights); renderWeight();
+  $('kfaInput').value='';
+  toast(`${kfa.toFixed(1)} % KFA eingetragen`);
 }
 
 function saveWeightGoal(){
