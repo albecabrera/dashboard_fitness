@@ -2234,8 +2234,9 @@ function openPhotoLightbox(startIdx) {
   }
   document.addEventListener('keydown', keyHandler);
 
+  img.style.cursor = 'zoom-out';
   overlay.addEventListener('click', e => {
-    if (e.target === overlay || e.target === close) {
+    if (e.target === overlay || e.target === close || e.target === img) {
       overlay.remove();
       document.removeEventListener('keydown', keyHandler);
     }
